@@ -1,0 +1,147 @@
+# =============================================================================
+# ApplyMail — Portainer stack
+#
+# Deploy as: Portainer -> Stacks -> Add stack -> Repository (or paste this file).
+# Set the variables marked "required" under the stack's Environment section.
+# =============================================================================
+
+services:
+
+  app:
+    image: ${APP_IMAGE:?set APP_IMAGE, e.g. ghcr.io/you/applymail:latest}
+    restart: unless-stopped
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+    environment:
+      APP_NAME: ${APP_NAME:-ApplyMail}
+      APP_ENV: production
+      APP_DEBUG: "false"
+      # Required. Generate once with:
+      #   docker run --rm ${APP_IMAGE} php artisan key:generate --show
+      APP_KEY: ${APP_KEY:?APP_KEY is required}
+      # Must be the public https:// address, or verification links point at localhost.
+      APP_URL: ${APP_URL:?APP_URL is required, e.g. https://apply.example.com}
+
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_DATABASE: ${DB_DATABASE:-applymail}
+      DB_USERNAME: ${DB_USERNAME:-applymail}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+
+      SESSION_DRIVER: database
+      SESSION_LIFETIME: "120"
+      # The proxy terminates TLS, so cookies must be marked secure.
+      SESSION_SECURE_COOKIE: "true"
+      CACHE_STORE: database
+      QUEUE_CONNECTION: database
+
+      # --- Mail. Verification is on, so signups stall without this. ---
+      MAIL_MAILER: smtp
+      MAIL_HOST: ${MAIL_HOST:?MAIL_HOST is required}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_SCHEME: ${MAIL_SCHEME:-tls}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:?MAIL_FROM_ADDRESS is required}
+      MAIL_FROM_NAME: ${APP_NAME:-ApplyMail}
+
+      # --- AI ---
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
+      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-chat}
+      AI_DAILY_LIMIT: ${AI_DAILY_LIMIT:-5}
+      AI_MONTHLY_LIMIT: ${AI_MONTHLY_LIMIT:-30}
+      AI_RATE_LIMIT_PER_MINUTE: ${AI_RATE_LIMIT_PER_MINUTE:-3}
+      AI_ABUSE_THRESHOLD_PER_DAY: ${AI_ABUSE_THRESHOLD_PER_DAY:-20}
+
+      # --- Uploads. Without all three, files fall back to the local volume. ---
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      CLOUDINARY_FOLDER: ${CLOUDINARY_FOLDER:-email-cv}
+
+      # --- Seeded admin, created on first boot only. ---
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?ADMIN_EMAIL is required}
+      ADMIN_NAME: ${ADMIN_NAME:-Administrator}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD is required}
+
+      LOG_CHANNEL: stderr
+      LOG_LEVEL: ${LOG_LEVEL:-warning}
+
+      # Nothing is queued or scheduled today; flip these if that changes.
+      RUN_QUEUE_WORKER: ${RUN_QUEUE_WORKER:-false}
+      RUN_SCHEDULER: ${RUN_SCHEDULER:-false}
+
+    volumes:
+      # Uploads (when Cloudinary is unset) and Laravel's writable tree.
+      - app-storage:/var/www/html/storage
+
+    ports:
+      # Point your existing reverse proxy at this. Bind to localhost if the
+      # proxy runs on the same host: "127.0.0.1:${APP_PORT:-8080}:80"
+      - "${APP_PORT:-8080}:80"
+
+    networks:
+      - internal
+
+    # --- Using Traefik instead of a port? Drop `ports:` above, attach the
+    # --- proxy network below, and uncomment these.
+    # labels:
+    #   traefik.enable: "true"
+    #   traefik.docker.network: proxy
+    #   traefik.http.routers.applymail.rule: Host(`apply.example.com`)
+    #   traefik.http.routers.applymail.entrypoints: websecure
+    #   traefik.http.routers.applymail.tls.certresolver: letsencrypt
+    #   traefik.http.services.applymail.loadbalancer.server.port: "80"
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-applymail}
+      MYSQL_USER: ${DB_USERNAME:-applymail}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?DB_ROOT_PASSWORD is required}
+
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p${DB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+    networks:
+      - internal
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  app-storage:
+  mysql-data:
+
+networks:
+  internal:
+  # Uncomment together with the Traefik labels above.
+  # proxy:
+  #   external: true

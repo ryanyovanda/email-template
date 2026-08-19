@@ -1,0 +1,47 @@
+# Secrets and local state must never end up in an image layer.
+.env
+.env.*
+!.env.example
+database/*.sqlite
+database/*.sqlite-journal
+
+# Rebuilt inside the image.
+node_modules
+vendor
+public/build
+public/hot
+public/storage
+public/fonts-manifest.dev.json
+bootstrap/cache/*.php
+bootstrap/ssr
+resources/js/actions
+resources/js/routes
+resources/js/wayfinder
+
+# Runtime state belongs on a volume, not in the image.
+storage/app/public/*
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/testing/*
+storage/framework/views/*.php
+storage/logs/*
+storage/pail
+
+# Not needed at runtime.
+.git
+.github
+.idea
+.vscode
+.DS_Store
+.phpunit.cache
+.phpunit.result.cache
+tests
+phpunit.xml
+phpstan.neon
+pint.json
+eslint.config.js
+.prettierrc
+.prettierignore
+.editorconfig
+README.md
+DEPLOY.md

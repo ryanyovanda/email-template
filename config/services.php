@@ -35,4 +35,18 @@ return [
         ],
     ],
 
+    'deepseek' => [
+        'key' => env('DEEPSEEK_API_KEY'),
+        'base_url' => env('DEEPSEEK_BASE_URL', 'https://api.deepseek.com'),
+        'model' => env('DEEPSEEK_MODEL', 'deepseek-chat'),
+        'timeout' => (int) env('DEEPSEEK_TIMEOUT', 120),
+    ],
+
+    'cloudinary' => [
+        'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+        'api_key' => env('CLOUDINARY_API_KEY'),
+        'api_secret' => env('CLOUDINARY_API_SECRET'),
+        'upload_folder' => env('CLOUDINARY_FOLDER', 'email-cv'),
+    ],
+
 ];

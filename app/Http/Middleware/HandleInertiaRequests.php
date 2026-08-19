@@ -42,6 +42,10 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'isAdmin' => (bool) $request->user()?->isAdmin(),
+            // Read by the editor's fetch() calls, which bypass Inertia's own
+            // XSRF handling because they expect JSON back.
+            'csrfToken' => $request->session()->token(),
         ];
     }
 }

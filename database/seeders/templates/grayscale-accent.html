@@ -1,0 +1,119 @@
+<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="background-color:#f0f0f0; padding:20px 0; font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <tr>
+    <td align="center">
+      <table width="650" cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:100%; max-width:650px; background-color:#ffffff; border-radius:16px; border:1px solid #e6e6e6;">
+
+        <!-- HEADER -->
+        <tr>
+          <td style="background-color:#2c2c2c; padding:28px 32px 24px 32px; border-radius:16px 16px 0 0;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
+              <tr>
+                <td align="left" valign="middle">
+                  <div style="font-size:22px; font-weight:600; color:#ffffff; letter-spacing:0.3px;">Application</div>
+                  <div style="font-size:13px; color:#b0b0b0; margin-top:4px;">{{ position }} &middot; {{ company }}</div>
+                </td>
+                <td align="right" valign="middle" width="70">
+                  <img src="{{ photo_url }}" alt="{{ full_name }}" width="56" height="56" style="width:56px; height:56px; border-radius:28px; border:2px solid {{ accent }}; display:block;">
+                </td>
+              </tr>
+            </table>
+            <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="margin-top:14px;">
+              <tr><td width="60" height="3" style="width:60px; height:3px; background-color:{{ accent }}; font-size:0; line-height:0;">&nbsp;</td></tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- BODY -->
+        <tr>
+          <td style="padding:30px 36px 8px 36px;">
+            <p style="font-size:15px; line-height:1.6; color:#2c2c2c; margin:0 0 8px 0; font-weight:500;">Dear {{ recipient_name }},</p>
+            <p style="font-size:14px; line-height:1.7; color:#4a4a4a; margin:0 0 18px 0;">{{ intro }}</p>
+          </td>
+        </tr>
+
+        <!-- HIGHLIGHT CARDS -->
+        <tr>
+          <td style="padding:0 36px;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
+              <tr>
+                <td style="background-color:#f7f7f7; border-radius:10px; border-left:4px solid {{ accent }}; padding:14px 18px;">
+                  <div style="font-size:13px; font-weight:600; color:#1a1a1a;">{{ highlight_one_title }}</div>
+                  <div style="font-size:13px; line-height:1.6; color:#4a4a4a; margin-top:4px;">{{ highlight_one_detail }}</div>
+                </td>
+              </tr>
+              <tr><td height="8" style="height:8px; font-size:0; line-height:0;">&nbsp;</td></tr>
+              <tr>
+                <td style="background-color:#f7f7f7; border-radius:10px; border-left:4px solid {{ accent }}; padding:14px 18px;">
+                  <div style="font-size:13px; font-weight:600; color:#1a1a1a;">{{ highlight_two_title }}</div>
+                  <div style="font-size:13px; line-height:1.6; color:#4a4a4a; margin-top:4px;">{{ highlight_two_detail }}</div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- NARRATIVE -->
+        <tr>
+          <td style="padding:18px 36px 0 36px;">
+            <p style="font-size:14px; line-height:1.7; color:#4a4a4a; margin:0 0 14px 0;">{{ body_paragraph }}</p>
+            <p style="font-size:14px; line-height:1.7; color:#4a4a4a; margin:0 0 14px 0;">{{ strengths_paragraph }}</p>
+          </td>
+        </tr>
+
+        <!-- SKILL TAGS -->
+        <tr>
+          <td style="padding:4px 36px 0 36px;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="background-color:#f2f2f2; border-radius:12px;">
+              <tr>
+                <td align="center" style="padding:12px 14px;">
+                  {{# skills }}<span style="display:inline-block; background-color:#ffffff; padding:5px 14px; border-radius:20px; font-size:12px; font-weight:500; color:#2c2c2c; border:1px solid #e0e0e0; margin:3px 2px;">{{ . }}</span>{{/ skills }}
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- CLOSING -->
+        <tr>
+          <td style="padding:18px 36px 0 36px;">
+            <p style="font-size:14px; line-height:1.7; color:#4a4a4a; margin:0 0 14px 0;">{{ availability }}</p>
+            <p style="font-size:14px; line-height:1.7; color:#4a4a4a; margin:0 0 4px 0;">{{ closing }}</p>
+          </td>
+        </tr>
+
+        <!-- SIGNATURE -->
+        <tr>
+          <td style="padding:22px 36px 0 36px;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-top:2px solid #e8e8e8;">
+              <tr>
+                <td valign="middle" style="padding-top:18px;">
+                  <div style="font-size:15px; font-weight:600; color:#1a1a1a;">{{ full_name }}</div>
+                  <div style="font-size:13px; color:#6b6b6b; margin-top:3px;">
+                    <a href="{{ phone_link }}" style="color:{{ accent }}; text-decoration:none; font-weight:500;">{{ phone }}</a>
+                    &middot; {{ location }}
+                  </div>
+                  <div style="font-size:13px; color:#6b6b6b; margin-top:3px;">
+                    <a href="{{ portfolio_url }}" style="color:{{ accent }}; text-decoration:none;">{{ portfolio_url }}</a>
+                  </div>
+                </td>
+                <td align="right" valign="middle" width="48" style="padding-top:18px;">
+                  <img src="{{ photo_url }}" alt="{{ full_name }}" width="40" height="40" style="width:40px; height:40px; border-radius:20px; border:2px solid {{ accent }}; display:block;">
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- FOOTER -->
+        <tr>
+          <td style="padding:18px 36px 26px 36px;">
+            <div style="border-top:1px dashed #e0e0e0; padding-top:14px; font-size:11px; color:#9a9a9a; text-align:center;">
+              Application for {{ position }} &middot; {{ company }}
+            </div>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
