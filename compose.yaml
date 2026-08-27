@@ -1,8 +1,21 @@
 # =============================================================================
-# ApplyMail — Portainer stack
+# ApplyMail — production stack
 #
-# Deploy as: Portainer -> Stacks -> Add stack -> Repository (or paste this file).
-# Set the variables marked "required" under the stack's Environment section.
+# Two ways to deploy this:
+#
+#   Portainer      Stacks -> Add stack -> Repository (or paste this file), then
+#                  set the variables marked "required" under Environment.
+#
+#   docker compose cp deploy.env.example deploy.env, fill it in, then
+#                  docker compose --env-file deploy.env up -d
+#
+#                  Building on the server instead of pulling a published image:
+#                  docker compose --env-file deploy.env \
+#                      -f compose.yaml -f compose.build.yaml up -d --build
+#
+# Pass --env-file explicitly. Compose otherwise reads ./.env, which in this repo
+# is Laravel's *development* environment file, and its APP_KEY and APP_URL would
+# silently become the deployed ones.
 # =============================================================================
 
 services:
@@ -10,6 +23,10 @@ services:
   app:
     image: ${APP_IMAGE:?set APP_IMAGE, e.g. ghcr.io/you/applymail:latest}
     restart: unless-stopped
+
+    # PHP-FPM is given time to finish an in-flight AI request rather than being
+    # killed mid-generation on redeploy.
+    stop_grace_period: 60s
 
     depends_on:
       mysql:
@@ -34,8 +51,11 @@ services:
 
       SESSION_DRIVER: database
       SESSION_LIFETIME: "120"
-      # The proxy terminates TLS, so cookies must be marked secure.
-      SESSION_SECURE_COOKIE: "true"
+      # The proxy terminates TLS, so cookies must be marked secure. Set this to
+      # "false" only to smoke-test over plain http:// — with it left on, the
+      # browser will not send the session cookie back and every login silently
+      # fails.
+      SESSION_SECURE_COOKIE: ${SESSION_SECURE_COOKIE:-true}
       CACHE_STORE: database
       QUEUE_CONNECTION: database
 
@@ -51,7 +71,10 @@ services:
 
       # --- AI ---
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
+      DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-https://api.deepseek.com}
       DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-chat}
+      # One generation may hold an FPM worker this long. See DEPLOY.md.
+      DEEPSEEK_TIMEOUT: ${DEEPSEEK_TIMEOUT:-120}
       AI_RATE_LIMIT_PER_MINUTE: ${AI_RATE_LIMIT_PER_MINUTE:-3}
       AI_ABUSE_THRESHOLD_PER_DAY: ${AI_ABUSE_THRESHOLD_PER_DAY:-20}
 
@@ -71,6 +94,10 @@ services:
       ADMIN_EMAIL: ${ADMIN_EMAIL:?ADMIN_EMAIL is required}
       ADMIN_NAME: ${ADMIN_NAME:-Administrator}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD is required}
+
+      # Defaults to APP_KEY when unset, which means rotating APP_KEY would
+      # invalidate every registered passkey. Set it once and leave it alone.
+      PASSKEYS_USER_HANDLE_SECRET: ${PASSKEYS_USER_HANDLE_SECRET:-${APP_KEY}}
 
       LOG_CHANNEL: stderr
       LOG_LEVEL: ${LOG_LEVEL:-warning}

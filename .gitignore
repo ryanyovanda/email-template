@@ -27,3 +27,6 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# Filled-in deployment environment (see deploy.env.example).
+deploy.env

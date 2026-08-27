@@ -1,12 +1,80 @@
-# Deploying ApplyMail with Portainer
+# Deploying ApplyMail
 
 The stack is two containers: the app (nginx + PHP-FPM behind supervisor) and MySQL 8.
 Your existing reverse proxy terminates TLS and forwards to the app's published port.
 
 Everything below has been run end to end against this image — build, first boot,
-migrations, seeding, a real registration POST, and a redeploy.
+migrations, seeding, a real registration POST, saving a hand-written template, and a
+redeploy.
+
+Two ways to deploy the same `compose.yaml`:
+
+- **[Portainer](#deploying-with-portainer)** — pull a published image, set the variables
+  in the stack UI.
+- **[Plain `docker compose`](#deploying-with-docker-compose)** — on any host with Docker,
+  using `deploy.env`. Jump to that section.
 
 ---
+
+## Deploying with docker compose
+
+```bash
+git clone <this repo> && cd email-html-template
+cp deploy.env.example deploy.env
+```
+
+Fill in everything under **Required** in `deploy.env`. For `APP_KEY`, build first and
+then generate one:
+
+```bash
+docker compose --env-file deploy.env -f compose.yaml -f compose.build.yaml build
+docker run --rm applymail:local php artisan key:generate --show
+```
+
+Then bring it up — building the image on this host:
+
+```bash
+docker compose --env-file deploy.env \
+    -f compose.yaml -f compose.build.yaml up -d --build
+```
+
+...or pulling a published one, with `APP_IMAGE` pointing at your registry:
+
+```bash
+docker compose --env-file deploy.env up -d
+```
+
+**Always pass `--env-file deploy.env`.** Compose otherwise reads `./.env`, which in this
+repo is Laravel's *development* environment file — you would deploy with its `APP_KEY`
+and `APP_URL` and not be told. `deploy.env` is gitignored and excluded from the image.
+
+Watch the first boot, which takes ~30s:
+
+```bash
+docker compose --env-file deploy.env logs -f app
+```
+
+It waits for MySQL, migrates, seeds the four starter templates and the admin account,
+then caches config, routes and views, and logs `[entrypoint] Ready`. Everything after
+that is [step 4](#4-point-your-reverse-proxy-at-it).
+
+> Building on the host needs Composer, Node and a PHP CLI — budget ~2 GB of RAM and a
+> few minutes. On a small VPS, build in CI and pull the result instead.
+
+Day to day:
+
+```bash
+docker compose --env-file deploy.env pull && \
+docker compose --env-file deploy.env up -d      # update to a new published image
+docker compose --env-file deploy.env ps         # status
+docker compose --env-file deploy.env down       # stop, keeping the volumes
+```
+
+---
+
+## Deploying with Portainer
+
+Steps 1 to 3 are Portainer-specific. Step 4 onwards applies to both paths.
 
 ## 1. Publish the image
 
@@ -78,8 +146,11 @@ required one is missing, rather than booting into a 500 page.
 | `MAIL_USERNAME` / `MAIL_PASSWORD` / `MAIL_PORT` / `MAIL_SCHEME` | `587` / `tls` | SMTP credentials |
 | `CREDIT_MONTHLY_GRANT` | `300` | Credits every account is topped up to each month |
 | `CREDIT_PRICE_APPLICATION_DRAFT` | `10` | Cost of one AI application draft |
-| `CREDIT_PRICE_TEMPLATE_DESIGN` | `30` | Cost of designing one template |
+| `CREDIT_PRICE_TEMPLATE_DESIGN` | `30` | Cost of designing one template **with AI**. Writing one by hand is always free and is not priced |
 | `CREDIT_PROMOTION_REWARD` | `50` | Paid to an author when their design is published |
+| `DEEPSEEK_TIMEOUT` | `120` | Seconds one generation may hold an FPM worker for |
+| `PASSKEYS_USER_HANDLE_SECRET` | `APP_KEY` | Set it explicitly if you ever intend to rotate `APP_KEY` — otherwise rotating orphans every registered passkey |
+| `SESSION_SECURE_COOKIE` | `true` | Only set `false` to smoke-test over plain `http://`; while it is `true` the browser will not send the session cookie back and every login silently fails |
 | `LOG_LEVEL` | `warning` | `debug` while bringing it up |
 | `RUN_QUEUE_WORKER` / `RUN_SCHEDULER` | `false` | Nothing is queued or scheduled today; flip if that changes |
 
@@ -125,6 +196,11 @@ curl -s https://apply.example.com/ | head     # landing page
 
 Then log in as `ADMIN_EMAIL`, change the password, and check **Admin → Templates**
 lists four templates.
+
+Templates → **Design your own** should offer both routes: *Generate with AI* (priced in
+credits) and *Make your own* (free). The second opens the HTML builder with a live
+preview, three worked examples and the full guide — it needs no `DEEPSEEK_API_KEY`, so
+it is the quickest way to confirm a fresh deployment renders and saves correctly.
 
 To promote your own account instead of using the seeded one:
 

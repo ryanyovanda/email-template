@@ -1,0 +1,21 @@
+# =============================================================================
+# Build the image on the deployment host instead of pulling a published one.
+#
+#   docker compose --env-file deploy.env \
+#       -f compose.yaml -f compose.build.yaml up -d --build
+#
+# The image is tagged with whatever APP_IMAGE says, so set it to a local name
+# such as applymail:local when there is no registry involved.
+#
+# The build needs Composer, Node and a PHP CLI, so it is heavier than the
+# runtime container: budget ~2 GB of RAM and a few minutes on first run. On a
+# small VPS, prefer building in CI and pulling the result.
+# =============================================================================
+
+services:
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime

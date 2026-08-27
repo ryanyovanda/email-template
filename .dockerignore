@@ -2,6 +2,9 @@
 .env
 .env.*
 !.env.example
+# Does not match .env.* — without this, a filled-in deployment environment
+# would be copied into the image.
+deploy.env
 database/*.sqlite
 database/*.sqlite-journal
 
@@ -45,3 +48,6 @@ eslint.config.js
 .editorconfig
 README.md
 DEPLOY.md
+compose.yaml
+compose.build.yaml
+deploy.env.example
