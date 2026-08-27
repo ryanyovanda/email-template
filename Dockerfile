@@ -22,6 +22,8 @@ COPY . .
 RUN composer dump-autoload --optimize --classmap-authoritative --no-dev \
  && composer run-script post-autoload-dump --no-dev
 
+ RUN chown -R www-data:www-data /var/lib/nginx/tmp
+
 # =============================================================================
 # 2. Front-end assets
 #
@@ -83,8 +85,21 @@ COPY --chown=www-data:www-data . .
 COPY --from=vendor --chown=www-data:www-data /app/vendor ./vendor
 COPY --from=assets --chown=www-data:www-data /app/public/build ./public/build
 
+# nginx workers run as www-data (see docker/nginx.conf), but Alpine ships
+# /var/lib/nginx owned by nginx:nginx with mode 700. Any request body larger
+# than client_body_buffer_size is spilled to a temp file there, so without this
+# every file upload dies with "Permission denied" at the nginx layer — before
+# PHP is reached, which means nothing appears in the application log. The
+# fastcgi path matters for the same reason on large responses.
 RUN chmod +x /usr/local/bin/entrypoint \
- && mkdir -p /run/nginx storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
+ && mkdir -p /run/nginx \
+        /var/lib/nginx/tmp/client_body \
+        /var/lib/nginx/tmp/proxy \
+        /var/lib/nginx/tmp/fastcgi \
+        /var/lib/nginx/tmp/uwsgi \
+        /var/lib/nginx/tmp/scgi \
+        storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
+ && chown -R www-data:www-data /var/lib/nginx /run/nginx \
  && chown -R www-data:www-data storage bootstrap/cache \
  && rm -rf /var/www/html/.env
 
