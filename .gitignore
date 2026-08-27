@@ -30,3 +30,4 @@ yarn-error.log
 
 # Filled-in deployment environment (see deploy.env.example).
 deploy.env
+env
