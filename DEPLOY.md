@@ -119,8 +119,19 @@ Copy the whole `base64:...` string.
 Portainer → **Stacks** → **Add stack** → **Repository**, pointed at this repo with
 compose path `compose.yaml`. (Or **Web editor** and paste the file.)
 
-Then fill in **Environment variables**. The app fails fast with a named error if a
-required one is missing, rather than booting into a 500 page.
+Then fill in **Environment variables**. A missing required value does not stop the stack
+from loading — the container starts, refuses to serve, and names every variable it needs
+in the logs:
+
+```
+[entrypoint] ERROR: required configuration is missing:
+  APP_URL  — the public https:// address, e.g. https://apply.example.com
+  DB_PASSWORD  — password for the application database user
+[entrypoint] Set these in your stack environment (Portainer) or deploy.env, then redeploy.
+```
+
+`APP_IMAGE` is the exception: it is consumed by Docker rather than the app, so getting it
+wrong shows up as a pull failure on the stack instead.
 
 ### Required
 
@@ -228,6 +239,28 @@ class User extends Authenticatable implements PasskeyUser, MustVerifyEmail
 ```
 
 Configure SMTP first — otherwise every new signup stalls on the verify screen.
+
+---
+
+## Troubleshooting
+
+**`invalid interpolation format for services.app.image` / `required variable APP_IMAGE is
+missing a value`.** Portainer parses the compose file before it applies the stack's
+environment variables, so any `${VAR:?message}` in the file fails at load time whether or
+not you set the variable. Nothing in `compose.yaml` uses that form any more — if you see
+this, you are on an older copy of the file. Re-pull the repository in Portainer, or paste
+the current `compose.yaml` into the web editor.
+
+**The stack deploys but the app container restarts.** Read its logs: the entrypoint prints
+exactly which required variables are unset and exits. See step 3.
+
+**`pull access denied` or `manifest unknown`.** `APP_IMAGE` is unset or wrong, so Docker
+fell back to the placeholder `applymail:latest`. Set it to your published image.
+
+**Login does nothing, no error.** `SESSION_SECURE_COOKIE` is `true` (correct behind TLS)
+but you are reaching the app over plain `http://`. The browser accepts the cookie and
+never sends it back. Finish the TLS setup, or set `SESSION_SECURE_COOKIE=false` while
+testing.
 
 ---
 

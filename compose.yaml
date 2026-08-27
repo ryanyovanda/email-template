@@ -17,11 +17,12 @@
 # is Laravel's *development* environment file, and its APP_KEY and APP_URL would
 # silently become the deployed ones.
 #
-# Nothing below uses the ${VAR:?message} "required variable" form. It is checked
-# while the file is *parsed*, which is before Portainer applies a stack's
-# environment variables, so the stack fails to load with an interpolation error
-# instead of a useful one. Required values are enforced by the entrypoint
-# instead: it refuses to start and names the missing variable in the logs.
+# Nothing below uses compose's "required variable" interpolation form. It is
+# resolved while the file is *parsed*, which happens before Portainer applies a
+# stack's environment variables, so a missing value failed the whole stack load
+# with an interpolation error instead of a useful one. Required values are
+# enforced by the entrypoint instead: it refuses to start and names every
+# missing variable in the container logs.
 # =============================================================================
 
 services:
