@@ -16,12 +16,21 @@
 # Pass --env-file explicitly. Compose otherwise reads ./.env, which in this repo
 # is Laravel's *development* environment file, and its APP_KEY and APP_URL would
 # silently become the deployed ones.
+#
+# Nothing below uses the ${VAR:?message} "required variable" form. It is checked
+# while the file is *parsed*, which is before Portainer applies a stack's
+# environment variables, so the stack fails to load with an interpolation error
+# instead of a useful one. Required values are enforced by the entrypoint
+# instead: it refuses to start and names the missing variable in the logs.
 # =============================================================================
 
 services:
 
   app:
-    image: ${APP_IMAGE:?set APP_IMAGE, e.g. ghcr.io/you/applymail:latest}
+    # Required. Set it to your published image, e.g.
+    #   ghcr.io/you/applymail:latest
+    # The default below only exists so the file parses; it will not pull.
+    image: ${APP_IMAGE:-applymail:latest}
     restart: unless-stopped
 
     # PHP-FPM is given time to finish an in-flight AI request rather than being
@@ -38,16 +47,16 @@ services:
       APP_DEBUG: "false"
       # Required. Generate once with:
       #   docker run --rm ${APP_IMAGE} php artisan key:generate --show
-      APP_KEY: ${APP_KEY:?APP_KEY is required}
+      APP_KEY: ${APP_KEY:-}
       # Must be the public https:// address, or verification links point at localhost.
-      APP_URL: ${APP_URL:?APP_URL is required, e.g. https://apply.example.com}
+      APP_URL: ${APP_URL:-}
 
       DB_CONNECTION: mysql
       DB_HOST: mysql
       DB_PORT: "3306"
       DB_DATABASE: ${DB_DATABASE:-applymail}
       DB_USERNAME: ${DB_USERNAME:-applymail}
-      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      DB_PASSWORD: ${DB_PASSWORD:-}
 
       SESSION_DRIVER: database
       SESSION_LIFETIME: "120"
@@ -61,12 +70,12 @@ services:
 
       # --- Mail. Verification is on, so signups stall without this. ---
       MAIL_MAILER: smtp
-      MAIL_HOST: ${MAIL_HOST:?MAIL_HOST is required}
+      MAIL_HOST: ${MAIL_HOST:-}
       MAIL_PORT: ${MAIL_PORT:-587}
       MAIL_USERNAME: ${MAIL_USERNAME}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
       MAIL_SCHEME: ${MAIL_SCHEME:-tls}
-      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:?MAIL_FROM_ADDRESS is required}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-}
       MAIL_FROM_NAME: ${APP_NAME:-ApplyMail}
 
       # --- AI ---
@@ -91,13 +100,14 @@ services:
       CLOUDINARY_FOLDER: ${CLOUDINARY_FOLDER:-email-cv}
 
       # --- Seeded admin, created on first boot only. ---
-      ADMIN_EMAIL: ${ADMIN_EMAIL:?ADMIN_EMAIL is required}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
       ADMIN_NAME: ${ADMIN_NAME:-Administrator}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD is required}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
 
-      # Defaults to APP_KEY when unset, which means rotating APP_KEY would
-      # invalidate every registered passkey. Set it once and leave it alone.
-      PASSKEYS_USER_HANDLE_SECRET: ${PASSKEYS_USER_HANDLE_SECRET:-${APP_KEY}}
+      # Left blank the app derives this from APP_KEY, which means rotating
+      # APP_KEY would invalidate every registered passkey. Set it once, to any
+      # long random string, if rotation is ever on the cards.
+      PASSKEYS_USER_HANDLE_SECRET: ${PASSKEYS_USER_HANDLE_SECRET:-}
 
       LOG_CHANNEL: stderr
       LOG_LEVEL: ${LOG_LEVEL:-warning}
@@ -145,8 +155,8 @@ services:
     environment:
       MYSQL_DATABASE: ${DB_DATABASE:-applymail}
       MYSQL_USER: ${DB_USERNAME:-applymail}
-      MYSQL_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?DB_ROOT_PASSWORD is required}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-}
 
     volumes:
       - mysql-data:/var/lib/mysql

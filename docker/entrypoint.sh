@@ -16,13 +16,45 @@ case "${1:-}" in
 esac
 
 # --- Required configuration -------------------------------------------------
-# Failing here with a clear message beats booting into a 500 page.
-[ -n "${APP_KEY:-}" ] || fail "APP_KEY is not set. Generate one with: docker run --rm <image> php artisan key:generate --show"
+# Every required value is checked here rather than with compose's ${VAR:?...}
+# syntax. That form is evaluated while the compose file is parsed, which happens
+# before Portainer applies a stack's environment variables, so a missing value
+# surfaced as an unhelpful interpolation error and the stack never deployed.
+# Failing here instead names the variable, in the container logs, and beats
+# booting into a 500 page either way.
+missing=""
+
+require() {
+    eval "value=\${$1:-}"
+    [ -n "$value" ] || missing="${missing}  ${1}  — ${2}\n"
+}
+
+require APP_KEY "generate with: docker run --rm <image> php artisan key:generate --show"
+require APP_URL "the public https:// address, e.g. https://apply.example.com"
+require DB_PASSWORD "password for the application database user"
+require MAIL_HOST "SMTP host; password resets fail without it"
+require MAIL_FROM_ADDRESS "the From address on outbound mail"
+require ADMIN_EMAIL "the administrator account created on first boot"
+require ADMIN_PASSWORD "password for that administrator account"
+
+if [ -n "$missing" ]; then
+    printf '[entrypoint] ERROR: required configuration is missing:\n' >&2
+    printf "$missing" >&2
+    printf '[entrypoint] Set these in your stack environment (Portainer) or deploy.env, then redeploy.\n' >&2
+    exit 1
+fi
 
 case "${APP_KEY}" in
     base64:*) ;;
     *) fail "APP_KEY must be a base64: value produced by 'php artisan key:generate --show'." ;;
 esac
+
+# An empty value is an empty string to Laravel's env(), not "unset", so a blank
+# one here would replace the APP_KEY-derived default with nothing and orphan
+# every registered passkey. Drop it instead.
+if [ -z "${PASSKEYS_USER_HANDLE_SECRET:-}" ]; then
+    unset PASSKEYS_USER_HANDLE_SECRET
+fi
 
 # --- Storage volume ---------------------------------------------------------
 # The volume mounts over an empty directory on first boot, so the tree Laravel
