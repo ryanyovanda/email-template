@@ -1,12 +1,33 @@
 <script setup lang="ts">
-import { Head, router } from '@inertiajs/vue3';
-import { Loader2, Sparkles, TriangleAlert, Wand2 } from '@lucide/vue';
-import { ref } from 'vue';
+import { Head, Link, router } from '@inertiajs/vue3';
+import {
+    Eye,
+    Loader2,
+    Sparkles,
+    Trash2,
+    TriangleAlert,
+    Users,
+    Wand2,
+} from '@lucide/vue';
+import { computed, ref } from 'vue';
+import GmailPreview from '@/components/GmailPreview.vue';
 import Heading from '@/components/Heading.vue';
+import TemplateThumbnail from '@/components/TemplateThumbnail.vue';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { edit as applicantProfileEdit } from '@/routes/applicant-profile';
 import { store as storeApplication } from '@/routes/applications';
-import { index as templatesIndex } from '@/routes/templates';
+import {
+    destroy as destroyTemplate,
+    generate as generateTemplate,
+    index as templatesIndex,
+} from '@/routes/templates';
 
 type Template = {
     id: number;
@@ -17,11 +38,18 @@ type Template = {
     thumbnail_url: string | null;
     field_count: number;
     ai_field_count: number;
+    is_mine: boolean;
+    is_global: boolean;
+    is_community: boolean;
+    preview_html: string;
 };
 
 defineProps<{
     templates: Template[];
     hasCvText: boolean;
+    credits: number;
+    designPrice: number;
+    highlight: number | null;
 }>();
 
 defineOptions({
@@ -31,13 +59,35 @@ defineOptions({
 });
 
 const startingId = ref<number | null>(null);
+const previewing = ref<Template | null>(null);
+
+const previewOpen = computed({
+    get: () => previewing.value !== null,
+    set: (open: boolean) => {
+        if (!open) {
+            previewing.value = null;
+        }
+    },
+});
+
+function remove(template: Template): void {
+    if (
+        !window.confirm(
+            `Delete "${template.name}"? Drafts already using it keep their saved copy.`,
+        )
+    ) {
+        return;
+    }
+
+    router.delete(destroyTemplate(template.id).url, { preserveScroll: true });
+}
 
 function start(template: Template): void {
     startingId.value = template.id;
 
     router.post(
         storeApplication().url,
-        { email_template_id: template.id, title: `Application — ${template.name}` },
+        { email_template_id: template.id },
         { onFinish: () => (startingId.value = null) },
     );
 }
@@ -47,10 +97,21 @@ function start(template: Template): void {
     <Head title="Templates" />
 
     <div class="space-y-6 p-4">
-        <Heading
-            title="Choose a template"
-            description="Pick a layout, then fill it in yourself or let the AI draft it from your CV and the job posting."
-        />
+        <div class="flex flex-wrap items-end justify-between gap-4">
+            <Heading
+                title="Choose a template"
+                description="Pick a layout, then fill it in yourself or let the AI draft it from your CV and the job posting."
+            />
+            <Button variant="outline" as-child>
+                <Link :href="generateTemplate()">
+                    <Sparkles class="size-4" />
+                    Design your own
+                    <span class="text-xs text-muted-foreground">
+                        {{ designPrice }} credits, or free by hand
+                    </span>
+                </Link>
+            </Button>
+        </div>
 
         <div
             v-if="!hasCvText"
@@ -68,68 +129,72 @@ function start(template: Template): void {
 
         <div
             v-if="templates.length === 0"
-            class="text-muted-foreground rounded-xl border border-dashed p-12 text-center text-sm"
+            class="rounded-xl border border-dashed p-12 text-center"
         >
-            No templates are available yet. Check back shortly.
+            <p class="text-sm text-muted-foreground">
+                No templates are available yet.
+            </p>
+            <Button class="mt-4" as-child>
+                <Link :href="generateTemplate()">
+                    <Sparkles class="size-4" /> Design one
+                </Link>
+            </Button>
         </div>
 
         <div v-else class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
             <article
                 v-for="template in templates"
                 :key="template.id"
-                class="group hover:border-primary/40 flex flex-col overflow-hidden rounded-xl border transition-colors"
+                class="group relative flex flex-col overflow-hidden rounded-xl border transition-colors hover:border-primary/40"
+                :class="
+                    highlight === template.id
+                        ? 'ring-2 ring-primary/60 ring-offset-2'
+                        : ''
+                "
             >
-                <div
-                    class="relative flex h-40 items-center justify-center overflow-hidden"
-                    :style="{
-                        background: `linear-gradient(135deg, ${template.accent_color}22, ${template.accent_color}05)`,
-                    }"
+                <button
+                    type="button"
+                    class="group/preview relative block w-full border-b text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                    :aria-label="`Preview ${template.name}`"
+                    @click="previewing = template"
                 >
-                    <img
-                        v-if="template.thumbnail_url"
-                        :src="template.thumbnail_url"
-                        :alt="template.name"
-                        class="size-full object-cover object-top"
-                    />
-                    <!-- Stand-in preview: a miniature of the email's shape -->
-                    <div
-                        v-else
-                        class="w-40 rounded-md bg-white p-2.5 shadow-md ring-1 ring-black/5"
+                    <TemplateThumbnail :html="template.preview_html" />
+
+                    <span
+                        class="absolute inset-0 flex items-center justify-center bg-black/45 opacity-0 transition-opacity group-hover/preview:opacity-100 group-focus-visible/preview:opacity-100"
                     >
-                        <div
-                            class="h-5 rounded-sm"
-                            :style="{ backgroundColor: template.accent_color }"
-                        />
-                        <div class="mt-2 space-y-1.5">
-                            <div class="h-1.5 w-3/4 rounded-full bg-neutral-200" />
-                            <div class="h-1.5 w-full rounded-full bg-neutral-100" />
-                            <div class="h-1.5 w-full rounded-full bg-neutral-100" />
-                            <div class="h-1.5 w-2/3 rounded-full bg-neutral-100" />
-                        </div>
-                        <div class="mt-2 flex gap-1">
-                            <div
-                                v-for="n in 3"
-                                :key="n"
-                                class="h-2 w-7 rounded-full"
-                                :style="{
-                                    backgroundColor: `${template.accent_color}33`,
-                                }"
-                            />
-                        </div>
-                    </div>
-                </div>
+                        <span
+                            class="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-neutral-900 shadow-sm"
+                        >
+                            <Eye class="size-4" /> Preview
+                        </span>
+                    </span>
+                </button>
 
                 <div class="flex flex-1 flex-col p-5">
-                    <h3 class="font-semibold">{{ template.name }}</h3>
+                    <div class="flex items-start justify-between gap-2">
+                        <h3 class="font-semibold">{{ template.name }}</h3>
+                        <span
+                            v-if="template.is_mine && !template.is_global"
+                            class="shrink-0 rounded-full border px-2 py-0.5 text-[10px] text-muted-foreground"
+                            >Yours</span
+                        >
+                        <span
+                            v-else-if="template.is_community"
+                            class="inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] text-muted-foreground"
+                        >
+                            <Users class="size-2.5" /> Community
+                        </span>
+                    </div>
                     <p
                         v-if="template.description"
-                        class="text-muted-foreground mt-1.5 flex-1 text-sm leading-relaxed"
+                        class="mt-1.5 flex-1 text-sm leading-relaxed text-muted-foreground"
                     >
                         {{ template.description }}
                     </p>
 
                     <div
-                        class="text-muted-foreground mt-4 flex items-center gap-3 text-xs"
+                        class="mt-4 flex items-center gap-3 text-xs text-muted-foreground"
                     >
                         <span>{{ template.field_count }} fields</span>
                         <span
@@ -141,20 +206,71 @@ function start(template: Template): void {
                         </span>
                     </div>
 
-                    <Button
-                        class="mt-4 w-full"
-                        :disabled="startingId !== null"
-                        @click="start(template)"
-                    >
-                        <Loader2
-                            v-if="startingId === template.id"
-                            class="size-4 animate-spin"
-                        />
-                        <Wand2 v-else class="size-4" />
-                        Use this template
-                    </Button>
+                    <div class="mt-4 flex gap-2">
+                        <Button
+                            class="flex-1"
+                            :disabled="startingId !== null"
+                            @click="start(template)"
+                        >
+                            <Loader2
+                                v-if="startingId === template.id"
+                                class="size-4 animate-spin"
+                            />
+                            <Wand2 v-else class="size-4" />
+                            Use this template
+                        </Button>
+                        <Button
+                            v-if="template.is_mine && !template.is_global"
+                            variant="outline"
+                            size="icon"
+                            class="text-muted-foreground hover:text-destructive"
+                            aria-label="Delete this template"
+                            @click="remove(template)"
+                        >
+                            <Trash2 class="size-4" />
+                        </Button>
+                    </div>
                 </div>
             </article>
         </div>
     </div>
+
+    <!-- Full-size preview, in the Gmail chrome the finished email is judged in -->
+    <Dialog v-model:open="previewOpen">
+        <DialogContent class="max-h-[92vh] max-w-4xl overflow-hidden p-0">
+            <DialogHeader class="border-b px-6 pt-6 pb-4">
+                <DialogTitle>{{ previewing?.name }}</DialogTitle>
+                <DialogDescription>
+                    {{
+                        previewing?.description ??
+                        'Sample content, your own profile details.'
+                    }}
+                </DialogDescription>
+            </DialogHeader>
+
+            <div class="max-h-[64vh] overflow-y-auto px-6 py-4">
+                <GmailPreview
+                    v-if="previewing"
+                    :html="previewing.preview_html"
+                    subject="Application — Senior Associate | Upsize Research"
+                    :sender-name="$page.props.auth.user.name"
+                    :sender-email="$page.props.auth.user.email"
+                    attachment="cv.pdf"
+                />
+            </div>
+
+            <div class="flex flex-wrap gap-2 border-t px-6 py-4">
+                <Button
+                    class="flex-1"
+                    :disabled="startingId !== null"
+                    @click="previewing && start(previewing)"
+                >
+                    <Wand2 class="size-4" /> Use this template
+                </Button>
+                <Button variant="outline" @click="previewing = null">
+                    Close
+                </Button>
+            </div>
+        </DialogContent>
+    </Dialog>
 </template>

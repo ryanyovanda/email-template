@@ -13,7 +13,7 @@ class UpdateApplicationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => ['required', 'string', 'max:150'],
+            'title' => ['nullable', 'string', 'max:150'],
             'company' => ['nullable', 'string', 'max:150'],
             'position' => ['nullable', 'string', 'max:150'],
             'recipient_name' => ['nullable', 'string', 'max:120'],

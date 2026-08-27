@@ -12,6 +12,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $id
  * @property int $user_id
  * @property int|null $application_id
+ * @property string $kind
+ * @property int|null $email_template_id
  * @property string $model
  * @property string $status
  * @property string|null $error
@@ -22,7 +24,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $ip_address
  */
 #[Fillable([
-    'user_id', 'application_id', 'model', 'status', 'error',
+    'user_id', 'application_id', 'kind', 'email_template_id', 'model', 'status', 'error',
     'prompt_tokens', 'completion_tokens', 'total_tokens', 'duration_ms', 'ip_address',
 ])]
 class AiGeneration extends Model

@@ -32,11 +32,19 @@ const props = defineProps<{
     stats: {
         applications: number;
         sent: number;
-        aiRemaining: number;
-        aiDailyLimit: number;
-        aiMonthlyLimit: number;
-        aiUsedThisMonth: number;
+        credits: number;
+        monthlyGrant: number;
+        draftPrice: number;
+        templatePrice: number;
+        draftsAffordable: number;
     };
+    creditHistory: {
+        id: number;
+        amount: number;
+        label: string;
+        description: string | null;
+        at: string | null;
+    }[];
     recent: {
         id: number;
         title: string;
@@ -97,33 +105,35 @@ const nextStep = computed(() => steps.value.find((step) => !step.done));
         <!-- Stats -->
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div class="rounded-xl border p-4">
-                <div class="text-muted-foreground text-xs">Applications</div>
+                <div class="text-xs text-muted-foreground">Applications</div>
                 <div class="mt-1 text-2xl font-semibold">
                     {{ stats.applications }}
                 </div>
             </div>
             <div class="rounded-xl border p-4">
-                <div class="text-muted-foreground text-xs">Sent out</div>
+                <div class="text-xs text-muted-foreground">Sent out</div>
                 <div class="mt-1 text-2xl font-semibold">{{ stats.sent }}</div>
             </div>
             <div class="rounded-xl border p-4">
-                <div class="text-muted-foreground text-xs">
-                    AI generations left today
-                </div>
+                <div class="text-xs text-muted-foreground">Credits</div>
                 <div class="mt-1 text-2xl font-semibold">
-                    {{ stats.aiRemaining }}
-                    <span class="text-muted-foreground text-sm font-normal"
-                        >/ {{ stats.aiDailyLimit }}</span
+                    {{ stats.credits.toLocaleString() }}
+                    <span class="text-sm font-normal text-muted-foreground"
+                        >/ {{ stats.monthlyGrant }} a month</span
                     >
                 </div>
             </div>
             <div class="rounded-xl border p-4">
-                <div class="text-muted-foreground text-xs">Used this month</div>
+                <div class="text-xs text-muted-foreground">That buys you</div>
                 <div class="mt-1 text-2xl font-semibold">
-                    {{ stats.aiUsedThisMonth }}
-                    <span class="text-muted-foreground text-sm font-normal"
-                        >/ {{ stats.aiMonthlyLimit }}</span
+                    {{ stats.draftsAffordable }}
+                    <span class="text-sm font-normal text-muted-foreground"
+                        >AI drafts</span
                     >
+                </div>
+                <div class="mt-1 text-xs text-muted-foreground">
+                    {{ stats.draftPrice }} each &middot; a template design costs
+                    {{ stats.templatePrice }}
                 </div>
             </div>
         </div>
@@ -132,7 +142,7 @@ const nextStep = computed(() => steps.value.find((step) => !step.done));
             <!-- Getting started -->
             <section class="rounded-xl border p-5">
                 <h2 class="text-sm font-semibold">Getting started</h2>
-                <p class="text-muted-foreground mt-1 text-sm">
+                <p class="mt-1 text-sm text-muted-foreground">
                     {{
                         nextStep
                             ? 'Three steps and you can send your first application.'
@@ -161,9 +171,11 @@ const nextStep = computed(() => steps.value.find((step) => !step.done));
                         </div>
 
                         <div class="min-w-0 flex-1">
-                            <h3 class="text-sm font-medium">{{ step.title }}</h3>
+                            <h3 class="text-sm font-medium">
+                                {{ step.title }}
+                            </h3>
                             <p
-                                class="text-muted-foreground mt-0.5 text-sm leading-relaxed"
+                                class="mt-0.5 text-sm leading-relaxed text-muted-foreground"
                             >
                                 {{ step.description }}
                             </p>
@@ -201,14 +213,14 @@ const nextStep = computed(() => steps.value.find((step) => !step.done));
                     <h2 class="text-sm font-semibold">Recent drafts</h2>
                     <Link
                         :href="applicationsIndex()"
-                        class="text-muted-foreground text-xs underline"
+                        class="text-xs text-muted-foreground underline"
                         >View all</Link
                     >
                 </div>
 
                 <div
                     v-if="recent.length === 0"
-                    class="text-muted-foreground mt-6 flex flex-col items-center gap-3 py-6 text-center text-sm"
+                    class="mt-6 flex flex-col items-center gap-3 py-6 text-center text-sm text-muted-foreground"
                 >
                     <Mail class="size-6" />
                     <p>Nothing here yet.</p>
@@ -223,7 +235,7 @@ const nextStep = computed(() => steps.value.find((step) => !step.done));
                     <li v-for="item in recent" :key="item.id">
                         <Link
                             :href="editApplication(item.id)"
-                            class="hover:bg-accent/50 flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors"
+                            class="flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-accent/50"
                         >
                             <div
                                 class="h-8 w-1 shrink-0 rounded-full"
@@ -238,7 +250,7 @@ const nextStep = computed(() => steps.value.find((step) => !step.done));
                                     {{ item.title }}
                                 </div>
                                 <div
-                                    class="text-muted-foreground truncate text-xs"
+                                    class="truncate text-xs text-muted-foreground"
                                 >
                                     {{
                                         [item.position, item.company]
@@ -249,12 +261,47 @@ const nextStep = computed(() => steps.value.find((step) => !step.done));
                                 </div>
                             </div>
                             <FileText
-                                class="text-muted-foreground size-4 shrink-0"
+                                class="size-4 shrink-0 text-muted-foreground"
                             />
                         </Link>
                     </li>
                 </ul>
             </section>
         </div>
+
+        <!-- Credit ledger: a balance nobody can account for reads as a bug -->
+        <section v-if="creditHistory.length" class="rounded-xl border p-5">
+            <h2 class="text-sm font-semibold">Recent credit activity</h2>
+            <ul class="mt-3 divide-y">
+                <li
+                    v-for="entry in creditHistory"
+                    :key="entry.id"
+                    class="flex items-center gap-4 py-2.5"
+                >
+                    <div class="min-w-0 flex-1">
+                        <div class="truncate text-sm">{{ entry.label }}</div>
+                        <div
+                            v-if="entry.description"
+                            class="truncate text-xs text-muted-foreground"
+                        >
+                            {{ entry.description }}
+                        </div>
+                    </div>
+                    <div class="shrink-0 text-xs text-muted-foreground">
+                        {{ entry.at }}
+                    </div>
+                    <div
+                        class="w-16 shrink-0 text-right text-sm font-medium tabular-nums"
+                        :class="
+                            entry.amount >= 0
+                                ? 'text-emerald-600 dark:text-emerald-400'
+                                : 'text-muted-foreground'
+                        "
+                    >
+                        {{ entry.amount > 0 ? '+' : '' }}{{ entry.amount }}
+                    </div>
+                </li>
+            </ul>
+        </section>
     </div>
 </template>

@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Application;
+use App\Models\CreditTransaction;
 use App\Services\Ai\AiException;
 use App\Services\Ai\ApplicationContentGenerator;
+use App\Services\Credits\CreditLedger;
 use App\Services\Templates\TemplateParser;
 use App\Services\Templates\TemplateRenderer;
 use Illuminate\Http\JsonResponse;
@@ -18,6 +20,7 @@ class AiDraftController extends Controller
         Application $application,
         ApplicationContentGenerator $generator,
         TemplateRenderer $renderer,
+        CreditLedger $credits,
     ): JsonResponse {
         abort_unless($application->user_id === $request->user()->id, 403);
 
@@ -45,14 +48,16 @@ class AiDraftController extends Controller
             ], 422);
         }
 
-        if ($user->remainingAiGenerations() < 1) {
+        $price = $credits->priceOf(CreditTransaction::APPLICATION_DRAFT);
+
+        if (! $credits->canAfford($user, CreditTransaction::APPLICATION_DRAFT)) {
             return response()->json([
                 'message' => sprintf(
-                    'You have used all your AI generations (%d per day, %d per month). Fill the template in manually, or come back tomorrow.',
-                    $user->dailyAiLimit(),
-                    $user->monthlyAiLimit(),
+                    'Writing this draft costs %d credits and you have %d. Your allowance tops up at the start of next month — until then you can still fill the template in yourself.',
+                    $price,
+                    $credits->balance($user),
                 ),
-            ], 429);
+            ], 402);
         }
 
         $rateKey = 'ai-draft:'.$user->id;
@@ -69,10 +74,12 @@ class AiDraftController extends Controller
         $application->mode = 'ai';
 
         try {
-            $values = $generator->generate($user, $application, $template, $profile);
+            $generated = $generator->generate($user, $application, $template, $profile);
         } catch (AiException $e) {
             return response()->json(['message' => $e->getMessage()], 502);
         }
+
+        $values = $generated->values;
 
         // Company, role and hiring contact belong to the application record, not
         // to the template content, and never overwrite what the user typed.
@@ -96,11 +103,17 @@ class AiDraftController extends Controller
         $application->rendered_html = $renderer->render($template, $profile, $merged, $application);
         $application->save();
 
+        // Charged only now that the draft exists, so a failed call is free.
+        $credits->spend($user, CreditTransaction::APPLICATION_DRAFT, [
+            'ai_generation_id' => $generated->generation->id,
+            'description' => $application->displayName(),
+        ]);
+
         return response()->json([
             'field_values' => (object) $merged,
             'application' => $application->only(['company', 'position', 'recipient_name']),
             'html' => $application->rendered_html,
-            'remainingAi' => $user->remainingAiGenerations(),
+            'credits' => $credits->balance($user),
             'message' => 'Draft written. Review every line before you send it.',
         ]);
     }

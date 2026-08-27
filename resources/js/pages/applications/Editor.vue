@@ -43,6 +43,7 @@ type Field = {
 type ApplicationData = {
     id: number;
     title: string;
+    display_name: string;
     company: string | null;
     position: string | null;
     recipient_name: string | null;
@@ -62,8 +63,8 @@ const props = defineProps<{
     profile: Record<string, string | null> | null;
     hasCvText: boolean;
     initialHtml: string;
-    remainingAi: number;
-    aiLimits: { daily: number; monthly: number };
+    credits: number;
+    draftPrice: number;
     extensionUrl: string;
 }>();
 
@@ -111,17 +112,43 @@ const rendering = ref(false);
 const generating = ref(false);
 const saving = ref(false);
 const copiedRecently = ref(false);
-const remaining = ref(props.remainingAi);
+const credits = ref(props.credits);
 const errors = ref<Record<string, string>>({});
 
 const contentFields = computed(
     () => props.template?.fields.filter((f) => f.source === 'content') ?? [],
 );
 
+type RoleToken = 'company' | 'position' | 'recipient_name';
+
+const ROLE_TOKENS: RoleToken[] = ['company', 'position', 'recipient_name'];
+
+/**
+ * Company, role and hiring contact are read out of the job posting by the AI
+ * rather than typed up front. They stay editable because the AI can misread a
+ * posting, and the wrong name in a greeting is the worst thing to get wrong.
+ */
+const roleFields = computed(() =>
+    (props.template?.fields ?? []).filter(
+        (field): field is Field & { token: RoleToken } =>
+            ROLE_TOKENS.includes(field.token as RoleToken),
+    ),
+);
+
+/**
+ * The company is what identifies an application to a person, so it leads the
+ * page and updates live as it is typed.
+ */
+const displayName = computed(
+    () => form.company.trim() || form.title.trim() || 'Untitled application',
+);
+
+const canAfford = computed(() => credits.value >= props.draftPrice);
+
 const canGenerate = computed(
     () =>
         props.hasCvText &&
-        remaining.value > 0 &&
+        canAfford.value &&
         form.job_post.trim().length >= 80 &&
         !generating.value,
 );
@@ -183,9 +210,13 @@ function scheduleRender(): void {
     renderTimer = window.setTimeout(refreshPreview, 400);
 }
 
-watch([values, () => [form.company, form.position, form.recipient_name]], scheduleRender, {
-    deep: true,
-});
+watch(
+    [values, () => [form.company, form.position, form.recipient_name]],
+    scheduleRender,
+    {
+        deep: true,
+    },
+);
 
 onBeforeUnmount(() => window.clearTimeout(renderTimer));
 
@@ -237,7 +268,7 @@ async function generate(): Promise<void> {
         form.mode = 'ai';
 
         html.value = data.html;
-        remaining.value = data.remainingAi;
+        credits.value = data.credits;
 
         toast.success(data.message);
         scheduleRender();
@@ -257,7 +288,8 @@ function save(): void {
         {
             preserveScroll: true,
             preserveState: true,
-            onError: (received) => (errors.value = received as Record<string, string>),
+            onError: (received) =>
+                (errors.value = received as Record<string, string>),
             onFinish: () => (saving.value = false),
         },
     );
@@ -286,26 +318,33 @@ async function copyHtml(): Promise<void> {
 </script>
 
 <template>
-    <Head :title="form.title" />
+    <Head :title="displayName" />
 
     <div
         v-if="!template"
         class="m-4 rounded-xl border border-dashed p-12 text-center"
     >
-        <FileWarning class="text-muted-foreground mx-auto size-8" />
+        <FileWarning class="mx-auto size-8 text-muted-foreground" />
         <p class="mt-3 text-sm">
             The template behind this application was removed by an
             administrator. Start a new application from the gallery.
         </p>
     </div>
 
-    <div v-else class="grid gap-6 p-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+    <div
+        v-else
+        class="grid gap-6 p-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"
+    >
         <!-- FORM COLUMN -->
         <div class="space-y-6">
             <div class="flex flex-wrap items-end justify-between gap-3">
                 <Heading
-                    :title="form.title"
-                    :description="`${template.name} template`"
+                    :title="displayName"
+                    :description="
+                        [form.position, `${template.name} template`]
+                            .filter(Boolean)
+                            .join(' · ')
+                    "
                 />
                 <Button
                     variant="outline"
@@ -320,21 +359,7 @@ async function copyHtml(): Promise<void> {
             </div>
 
             <!-- Mode switch -->
-            <div class="bg-muted grid grid-cols-2 gap-1 rounded-lg p-1">
-                <button
-                    type="button"
-                    :class="
-                        cn(
-                            'flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                            form.mode === 'manual'
-                                ? 'bg-background shadow-sm'
-                                : 'text-muted-foreground hover:text-foreground',
-                        )
-                    "
-                    @click="form.mode = 'manual'"
-                >
-                    <PencilLine class="size-4" /> Write it myself
-                </button>
+            <div class="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
                 <button
                     type="button"
                     :class="
@@ -349,46 +374,21 @@ async function copyHtml(): Promise<void> {
                 >
                     <Sparkles class="size-4" /> Generate with AI
                 </button>
+                <button
+                    type="button"
+                    :class="
+                        cn(
+                            'flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                            form.mode === 'manual'
+                                ? 'bg-background shadow-sm'
+                                : 'text-muted-foreground hover:text-foreground',
+                        )
+                    "
+                    @click="form.mode = 'manual'"
+                >
+                    <PencilLine class="size-4" /> Write it myself
+                </button>
             </div>
-
-            <!-- Role details -->
-            <section class="space-y-4 rounded-xl border p-5">
-                <h2 class="text-sm font-semibold">The role</h2>
-
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <div class="grid gap-2 sm:col-span-2">
-                        <Label for="title">Draft name</Label>
-                        <Input id="title" v-model="form.title" />
-                        <p class="text-muted-foreground text-xs">
-                            Only you see this — it keeps your drafts apart.
-                        </p>
-                    </div>
-                    <div class="grid gap-2">
-                        <Label for="position">Position</Label>
-                        <Input
-                            id="position"
-                            v-model="form.position"
-                            placeholder="Senior Associate"
-                        />
-                    </div>
-                    <div class="grid gap-2">
-                        <Label for="company">Company</Label>
-                        <Input
-                            id="company"
-                            v-model="form.company"
-                            placeholder="Upsize Research"
-                        />
-                    </div>
-                    <div class="grid gap-2 sm:col-span-2">
-                        <Label for="recipient_name">Hiring contact</Label>
-                        <Input
-                            id="recipient_name"
-                            v-model="form.recipient_name"
-                            placeholder="Riko"
-                        />
-                    </div>
-                </div>
-            </section>
 
             <!-- AI panel -->
             <section
@@ -397,19 +397,26 @@ async function copyHtml(): Promise<void> {
             >
                 <div class="flex items-start justify-between gap-3">
                     <div>
-                        <h2 class="flex items-center gap-2 text-sm font-semibold">
+                        <h2
+                            class="flex items-center gap-2 text-sm font-semibold"
+                        >
                             <Sparkles class="size-4" /> Generate from the job
                             posting
                         </h2>
-                        <p class="text-muted-foreground mt-1 text-sm">
+                        <p class="mt-1 text-sm text-muted-foreground">
                             Paste the posting. The AI writes each field using
                             only what is in your CV.
                         </p>
                     </div>
                     <span
-                        class="text-muted-foreground shrink-0 rounded-full border px-2.5 py-1 text-xs"
+                        class="shrink-0 rounded-full border px-2.5 py-1 text-xs"
+                        :class="
+                            canAfford
+                                ? 'text-muted-foreground'
+                                : 'border-destructive/40 text-destructive'
+                        "
                     >
-                        {{ remaining }} left
+                        {{ credits.toLocaleString() }} credits
                     </span>
                 </div>
 
@@ -434,7 +441,7 @@ async function copyHtml(): Promise<void> {
                         rows="9"
                         placeholder="Paste the full job posting here — responsibilities, requirements, everything."
                     />
-                    <p class="text-muted-foreground text-xs">
+                    <p class="text-xs text-muted-foreground">
                         {{ form.job_post.trim().length }} characters
                         <span v-if="form.job_post.trim().length < 80"
                             >— at least 80 needed</span
@@ -447,26 +454,24 @@ async function copyHtml(): Promise<void> {
                     :disabled="!canGenerate"
                     @click="generate"
                 >
-                    <Loader2
-                        v-if="generating"
-                        class="size-4 animate-spin"
-                    />
+                    <Loader2 v-if="generating" class="size-4 animate-spin" />
                     <Sparkles v-else class="size-4" />
                     {{
                         generating
                             ? 'Writing your draft…'
-                            : 'Generate draft'
+                            : `Generate draft · ${draftPrice} credits`
                     }}
                 </Button>
 
                 <p
-                    v-if="remaining === 0"
-                    class="text-muted-foreground text-center text-xs"
+                    v-if="!canAfford"
+                    class="text-center text-xs text-muted-foreground"
                 >
-                    You have used all {{ aiLimits.daily }} generations for today.
-                    You can still fill the fields in below.
+                    This costs {{ draftPrice }} credits and you have
+                    {{ credits }}. Your allowance tops up next month — you can
+                    still fill the fields in below.
                 </p>
-                <p v-else class="text-muted-foreground text-center text-xs">
+                <p v-else class="text-center text-xs text-muted-foreground">
                     Always read the draft before sending — the AI can get
                     details wrong.
                 </p>
@@ -476,9 +481,38 @@ async function copyHtml(): Promise<void> {
             <section class="space-y-5 rounded-xl border p-5">
                 <div>
                     <h2 class="text-sm font-semibold">Email content</h2>
-                    <p class="text-muted-foreground mt-1 text-sm">
+                    <p class="mt-1 text-sm text-muted-foreground">
                         Everything here is editable, whether you wrote it or the
                         AI did.
+                    </p>
+                </div>
+
+                <!-- Read out of the job posting, kept correctable -->
+                <div
+                    v-if="roleFields.length"
+                    class="grid gap-4 rounded-lg border bg-muted/40 p-4 sm:grid-cols-2"
+                >
+                    <div
+                        v-for="field in roleFields"
+                        :key="field.token"
+                        class="grid gap-2"
+                        :class="
+                            field.token === 'recipient_name'
+                                ? 'sm:col-span-2'
+                                : ''
+                        "
+                    >
+                        <Label :for="field.token">
+                            {{ field.label }}
+                            <Sparkles
+                                class="ml-1 inline size-3 text-muted-foreground"
+                            />
+                        </Label>
+                        <Input :id="field.token" v-model="form[field.token]" />
+                    </div>
+                    <p class="text-xs text-muted-foreground sm:col-span-2">
+                        Filled in from the job posting when you generate. Check
+                        the name before you send.
                     </p>
                 </div>
 
@@ -491,7 +525,7 @@ async function copyHtml(): Promise<void> {
                         {{ field.label }}
                         <Sparkles
                             v-if="field.ai"
-                            class="text-muted-foreground ml-1 inline size-3"
+                            class="ml-1 inline size-3 text-muted-foreground"
                         />
                     </Label>
 
@@ -512,24 +546,36 @@ async function copyHtml(): Promise<void> {
                         v-else
                         :id="field.token"
                         v-model="values[field.token]"
-                        :type="field.type === 'email' ? 'email' : field.type === 'url' ? 'url' : 'text'"
+                        :type="
+                            field.type === 'email'
+                                ? 'email'
+                                : field.type === 'url'
+                                  ? 'url'
+                                  : 'text'
+                        "
                     />
 
-                    <p
-                        v-if="field.help"
-                        class="text-muted-foreground text-xs"
-                    >
+                    <p v-if="field.help" class="text-xs text-muted-foreground">
                         {{ field.help }}
                     </p>
                 </div>
 
                 <p
                     v-if="contentFields.length === 0"
-                    class="text-muted-foreground text-sm"
+                    class="text-sm text-muted-foreground"
                 >
                     This template fills itself entirely from your profile and
-                    the role details above.
+                    the job posting.
                 </p>
+
+                <div class="grid gap-2 border-t pt-5">
+                    <Label for="title">Draft label</Label>
+                    <Input id="title" v-model="form.title" />
+                    <p class="text-xs text-muted-foreground">
+                        Only used in your list when no company has been picked
+                        up yet.
+                    </p>
+                </div>
             </section>
         </div>
 
@@ -549,23 +595,18 @@ async function copyHtml(): Promise<void> {
                 <div class="mt-4 space-y-3 rounded-xl border p-4">
                     <div class="flex flex-wrap gap-2">
                         <Button class="flex-1" @click="copyHtml">
-                            <Check
-                                v-if="copiedRecently"
-                                class="size-4"
-                            />
+                            <Check v-if="copiedRecently" class="size-4" />
                             <Copy v-else class="size-4" />
                             {{ copiedRecently ? 'Copied' : 'Copy HTML' }}
                         </Button>
                         <Button variant="outline" as-child>
-                            <a
-                                :href="downloadApplication(application.id).url"
-                            >
+                            <a :href="downloadApplication(application.id).url">
                                 <Download class="size-4" /> Download .html
                             </a>
                         </Button>
                     </div>
 
-                    <p class="text-muted-foreground text-xs leading-relaxed">
+                    <p class="text-xs leading-relaxed text-muted-foreground">
                         Open Gmail, click the extension's
                         <strong>Insert HTML</strong> button, paste this, attach
                         your CV, and send. The email goes from your own address,
@@ -576,7 +617,7 @@ async function copyHtml(): Promise<void> {
                         :href="extensionUrl"
                         target="_blank"
                         rel="noopener"
-                        class="text-primary inline-flex items-center gap-1 text-xs underline"
+                        class="inline-flex items-center gap-1 text-xs text-primary underline"
                     >
                         Get the Chrome extension
                         <ExternalLink class="size-3" />

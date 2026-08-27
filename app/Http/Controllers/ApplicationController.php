@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Applications\StoreApplicationRequest;
 use App\Http\Requests\Applications\UpdateApplicationRequest;
 use App\Models\Application;
+use App\Models\CreditTransaction;
 use App\Models\EmailTemplate;
+use App\Services\Credits\CreditLedger;
 use App\Services\Templates\TemplateRenderer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,7 +16,7 @@ use Inertia\Response;
 
 class ApplicationController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request, CreditLedger $credits): Response
     {
         $applications = $request->user()->applications()
             ->with('template:id,name,accent_color')
@@ -23,6 +25,7 @@ class ApplicationController extends Controller
             ->through(fn (Application $application): array => [
                 'id' => $application->id,
                 'title' => $application->title,
+                'display_name' => $application->displayName(),
                 'company' => $application->company,
                 'position' => $application->position,
                 'mode' => $application->mode,
@@ -33,25 +36,30 @@ class ApplicationController extends Controller
 
         return Inertia::render('applications/Index', [
             'applications' => $applications,
-            'remainingAi' => $request->user()->remainingAiGenerations(),
+            'credits' => $credits->balance($request->user()),
         ]);
     }
 
     public function store(StoreApplicationRequest $request): RedirectResponse
     {
-        $template = EmailTemplate::active()->findOrFail($request->integer('email_template_id'));
+        // Scoped so a guessed id cannot pull in someone else's private design.
+        $template = EmailTemplate::query()
+            ->active()
+            ->visibleTo($request->user())
+            ->findOrFail($request->integer('email_template_id'));
 
         $application = $request->user()->applications()->create([
             'email_template_id' => $template->id,
             'title' => $request->string('title')->toString() ?: 'Untitled application',
-            'mode' => 'manual',
+            // AI drafting is the primary path, so a new draft opens on it.
+            'mode' => 'ai',
             'field_values' => $template->defaultValues(),
         ]);
 
         return to_route('applications.edit', $application);
     }
 
-    public function edit(Request $request, Application $application, TemplateRenderer $renderer): Response
+    public function edit(Request $request, Application $application, TemplateRenderer $renderer, CreditLedger $credits): Response
     {
         $this->authorizeOwner($request, $application);
 
@@ -63,6 +71,7 @@ class ApplicationController extends Controller
             'application' => [
                 'id' => $application->id,
                 'title' => $application->title,
+                'display_name' => $application->displayName(),
                 'company' => $application->company,
                 'position' => $application->position,
                 'recipient_name' => $application->recipient_name,
@@ -84,11 +93,8 @@ class ApplicationController extends Controller
             'initialHtml' => $template
                 ? $renderer->render($template, $profile, $application->field_values ?? [], $application)
                 : '',
-            'remainingAi' => $request->user()->remainingAiGenerations(),
-            'aiLimits' => [
-                'daily' => $request->user()->dailyAiLimit(),
-                'monthly' => $request->user()->monthlyAiLimit(),
-            ],
+            'credits' => $credits->balance($request->user()),
+            'draftPrice' => $credits->priceOf(CreditTransaction::APPLICATION_DRAFT),
             'extensionUrl' => config('emailcv.extension_url'),
         ]);
     }
@@ -98,6 +104,12 @@ class ApplicationController extends Controller
         $this->authorizeOwner($request, $application);
 
         $application->fill($request->safe()->all());
+
+        // The company names the draft; the label is only the fallback, so it
+        // must never end up empty.
+        if (blank($application->title)) {
+            $application->title = 'Untitled application';
+        }
 
         if ($application->template) {
             $application->rendered_html = $renderer->render(

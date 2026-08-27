@@ -5,10 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreTemplateRequest;
 use App\Models\EmailTemplate;
-use App\Models\Profile;
+use App\Services\Credits\CreditLedger;
 use App\Services\Templates\TemplateLinter;
 use App\Services\Templates\TemplateParser;
-use App\Services\Templates\TemplateRenderer;
+use App\Services\Templates\TemplatePreview;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,11 +18,17 @@ use Inertia\Response;
 
 class TemplateController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $filter = $request->string('filter')->toString();
+
         return Inertia::render('admin/templates/Index', [
             'templates' => EmailTemplate::query()
                 ->withCount('applications')
+                ->with('creator:id,name,email')
+                ->when($filter === 'user', fn ($query) => $query->madeByUsers())
+                ->when($filter === 'pending', fn ($query) => $query->madeByUsers()->where('visibility', 'private'))
+                ->when($filter === 'global', fn ($query) => $query->global())
                 ->orderBy('sort_order')
                 ->orderBy('name')
                 ->get()
@@ -38,8 +44,79 @@ class TemplateController extends Controller
                     'field_count' => count($template->fields ?? []),
                     'applications_count' => $template->applications_count,
                     'updated_at' => $template->updated_at?->diffForHumans(),
+                    'visibility' => $template->visibility,
+                    'origin' => $template->origin,
+                    'is_user_made' => $template->isUserMade(),
+                    'is_hand_written' => $template->isHandWritten(),
+                    'brief' => $template->brief,
+                    'author' => $template->isUserMade() ? $template->creator?->only(['id', 'name', 'email']) : null,
+                    'terms_accepted' => $template->terms_accepted_at !== null,
+                    'promoted_at' => $template->promoted_at?->diffForHumans(),
                 ]),
+            'filters' => ['filter' => $filter],
+            'counts' => [
+                'all' => EmailTemplate::count(),
+                'user' => EmailTemplate::madeByUsers()->count(),
+                'pending' => EmailTemplate::madeByUsers()->where('visibility', 'private')->count(),
+                'global' => EmailTemplate::global()->count(),
+            ],
         ]);
+    }
+
+    /**
+     * Publish a user's design to the shared library. Permission for this is the
+     * term they accepted when they generated it, so a template without that
+     * acceptance on record is not publishable.
+     */
+    public function promote(Request $request, EmailTemplate $template, CreditLedger $credits): RedirectResponse
+    {
+        if ($template->isUserMade() && $template->terms_accepted_at === null) {
+            return back()->withErrors([
+                'template' => 'This design predates the sharing terms, so it cannot be published. Ask its author to generate it again.',
+            ]);
+        }
+
+        $template->forceFill([
+            'visibility' => 'global',
+            'is_active' => true,
+            'promoted_at' => now(),
+            'promoted_by' => $request->user()->id,
+        ])->save();
+
+        $reward = null;
+
+        if ($template->isUserMade() && $template->creator) {
+            $reward = $credits->rewardPromotion($template->creator, $template->id);
+        }
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => $reward
+                ? "“{$template->name}” is now in the shared library, and its author earned {$reward->amount} credits."
+                : "“{$template->name}” is now in the shared library.",
+        ]);
+
+        return back();
+    }
+
+    /**
+     * Withdraw a template from the shared library. Drafts already using it keep
+     * working, since the template row itself is untouched.
+     */
+    public function demote(EmailTemplate $template): RedirectResponse
+    {
+        $template->forceFill([
+            'visibility' => 'private',
+            'promoted_at' => null,
+            'promoted_by' => null,
+        ])->save();
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => "“{$template->name}” is no longer offered to other users.",
+        ]);
+
+        return back();
     }
 
     public function create(): Response
@@ -102,7 +179,7 @@ class TemplateController extends Controller
      * Live token detection, compatibility warnings and a sample render, used by
      * the template editor as the admin types.
      */
-    public function analyse(Request $request, TemplateParser $parser, TemplateLinter $linter, TemplateRenderer $renderer): JsonResponse
+    public function analyse(Request $request, TemplateParser $parser, TemplateLinter $linter, TemplatePreview $preview): JsonResponse
     {
         $validated = $request->validate([
             'html' => ['required', 'string', 'max:200000'],
@@ -112,7 +189,7 @@ class TemplateController extends Controller
 
         $fields = $parser->buildFields($validated['html'], $validated['fields'] ?? []);
 
-        $preview = new EmailTemplate([
+        $candidate = new EmailTemplate([
             'html' => $validated['html'],
             'fields' => $fields,
             'accent_color' => $validated['accent_color'] ?? '#E86A33',
@@ -121,7 +198,7 @@ class TemplateController extends Controller
         return response()->json([
             'fields' => $fields,
             'warnings' => $linter->lint($validated['html']),
-            'html' => $renderer->render($preview, $this->sampleProfile(), $this->sampleValues($fields)),
+            'html' => $preview->render($candidate),
         ]);
     }
 
@@ -151,56 +228,5 @@ class TemplateController extends Controller
             'application' => TemplateParser::APPLICATION_TOKENS,
             'template' => TemplateParser::TEMPLATE_TOKENS,
         ];
-    }
-
-    private function sampleProfile(): Profile
-    {
-        return new Profile([
-            'full_name' => 'Fajira Zenitha Purnama',
-            'headline' => 'Learning & Development Specialist',
-            'contact_email' => 'fajira@example.com',
-            'phone' => '0851-5648-0171',
-            'location' => 'Central Jakarta',
-            'portfolio_url' => 'https://example.com/portfolio',
-            'linkedin_url' => 'https://linkedin.com/in/example',
-            'photo_url' => 'https://res.cloudinary.com/demo/image/upload/w_120,h_120,c_fill,g_face,r_max/face_left.png',
-            'cv_url' => 'https://example.com/cv.pdf',
-            'cv_filename' => 'cv.pdf',
-        ]);
-    }
-
-    /**
-     * Placeholder copy so an admin can see the layout before any user exists.
-     *
-     * @param  array<int, array<string, mixed>>  $fields
-     * @return array<string, mixed>
-     */
-    private function sampleValues(array $fields): array
-    {
-        $values = [];
-
-        foreach ($fields as $field) {
-            $token = (string) $field['token'];
-
-            if (TemplateParser::isSystemToken($token)) {
-                continue;
-            }
-
-            $values[$token] = match ($field['type']) {
-                'list' => ['TNA', 'Curriculum Design', 'Project Management', 'Data Analysis'],
-                'textarea' => 'Sample paragraph showing how this block reads at a realistic length. Replace it with the copy your applicants will actually write, or let the AI draft it from their CV.',
-                'url' => 'https://example.com',
-                'email' => 'someone@example.com',
-                'image' => 'https://res.cloudinary.com/demo/image/upload/w_120,h_120,c_fill/sample.jpg',
-                default => match ($token) {
-                    'recipient_name' => 'Riko',
-                    'company' => 'Upsize Research',
-                    'position' => 'Finance, People & General Affairs, Senior Associate',
-                    default => 'Sample '.str_replace('_', ' ', $token),
-                },
-            };
-        }
-
-        return $values;
     }
 }

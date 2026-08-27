@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Services\Credits\CreditLedger;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -23,7 +24,6 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property string $role
  * @property Carbon|null $banned_at
  * @property string|null $ban_reason
- * @property int|null $ai_monthly_limit
  * @property Carbon|null $onboarded_at
  * @property Carbon|null $email_verified_at
  * @property string $password
@@ -68,6 +68,32 @@ class User extends Authenticatable implements PasskeyUser
         return $this->hasMany(AiGeneration::class);
     }
 
+    /**
+     * Templates the AI designed for this user.
+     *
+     * @return HasMany<EmailTemplate, $this>
+     */
+    public function emailTemplates(): HasMany
+    {
+        return $this->hasMany(EmailTemplate::class, 'created_by');
+    }
+
+    /**
+     * @return HasMany<CreditTransaction, $this>
+     */
+    public function creditTransactions(): HasMany
+    {
+        return $this->hasMany(CreditTransaction::class);
+    }
+
+    /**
+     * Spendable credits, after this month's allowance has been applied.
+     */
+    public function creditBalance(): int
+    {
+        return app(CreditLedger::class)->balance($this);
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
@@ -81,44 +107,6 @@ class User extends Authenticatable implements PasskeyUser
     public function hasCompletedOnboarding(): bool
     {
         return $this->onboarded_at !== null;
-    }
-
-    /**
-     * Successful AI generations allowed per calendar month, per user override
-     * falling back to the app-wide default.
-     */
-    public function monthlyAiLimit(): int
-    {
-        return $this->ai_monthly_limit ?? (int) config('emailcv.ai.monthly_limit');
-    }
-
-    public function dailyAiLimit(): int
-    {
-        return (int) config('emailcv.ai.daily_limit');
-    }
-
-    public function aiGenerationsThisMonth(): int
-    {
-        return $this->aiGenerations()
-            ->where('status', 'success')
-            ->where('created_at', '>=', now()->startOfMonth())
-            ->count();
-    }
-
-    public function aiGenerationsToday(): int
-    {
-        return $this->aiGenerations()
-            ->where('status', 'success')
-            ->where('created_at', '>=', now()->startOfDay())
-            ->count();
-    }
-
-    public function remainingAiGenerations(): int
-    {
-        return max(0, min(
-            $this->monthlyAiLimit() - $this->aiGenerationsThisMonth(),
-            $this->dailyAiLimit() - $this->aiGenerationsToday(),
-        ));
     }
 
     /**

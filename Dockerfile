@@ -44,7 +44,9 @@ RUN cp .env.example .env
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
 
-RUN php artisan wayfinder:generate --no-interaction \
+# --with-form matches `formVariants: true` in vite.config.ts; without it the
+# generated helpers lack .form and the type check fails.
+RUN php artisan wayfinder:generate --with-form --no-interaction \
  && npm run build \
  && rm -f .env
 

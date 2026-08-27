@@ -24,7 +24,7 @@ class ApplicationExportController extends Controller
 
         $html = $renderer->render($template, $request->user()->profile, $application->field_values ?? [], $application);
 
-        $filename = Str::slug($application->title ?: 'application').'.html';
+        $filename = Str::slug($application->displayName()).'.html';
 
         $application->forceFill(['last_copied_at' => now()])->save();
 

@@ -36,6 +36,21 @@ class Application extends Model
     use HasFactory;
 
     /**
+     * What this application is called in lists and headings.
+     *
+     * The company is the thing a person actually recognises, so it leads. The
+     * saved title is only a fallback for drafts that have not named one yet.
+     */
+    public function displayName(): string
+    {
+        if (filled($this->company)) {
+            return $this->company;
+        }
+
+        return filled($this->title) ? $this->title : 'Untitled application';
+    }
+
+    /**
      * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo

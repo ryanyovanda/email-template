@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Models\CreditTransaction;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -78,29 +79,54 @@ class UserModerationTest extends TestCase
         $this->assertNull($admin->fresh()->banned_at);
     }
 
-    public function test_an_admin_can_change_a_users_monthly_ai_allowance(): void
+    public function test_an_admin_can_add_credits(): void
     {
         $user = User::factory()->create();
+        $before = $user->creditBalance();
+        $admin = $this->admin();
 
-        $this->actingAs($this->admin())
-            ->patch(route('admin.users.limit', $user), ['ai_monthly_limit' => 3])
+        $this->actingAs($admin)
+            ->post(route('admin.users.credits', $user), ['amount' => 150, 'reason' => 'Goodwill'])
             ->assertRedirect();
 
-        $this->assertSame(3, $user->fresh()->monthlyAiLimit());
+        $this->assertSame($before + 150, $user->fresh()->creditBalance());
+
+        $entry = CreditTransaction::where('reason', CreditTransaction::ADMIN_ADJUSTMENT)->sole();
+
+        $this->assertSame(150, $entry->amount);
+        $this->assertSame('Goodwill', $entry->description);
+        $this->assertSame($admin->id, $entry->created_by, 'An adjustment must record who made it.');
     }
 
-    public function test_clearing_the_allowance_restores_the_app_default(): void
+    public function test_an_admin_can_take_credits_away(): void
     {
         $user = User::factory()->create();
-        $user->forceFill(['ai_monthly_limit' => 3])->save();
+        $before = $user->creditBalance();
 
         $this->actingAs($this->admin())
-            ->patch(route('admin.users.limit', $user), ['ai_monthly_limit' => null])
+            ->post(route('admin.users.credits', $user), ['amount' => -100])
             ->assertRedirect();
 
-        $this->assertSame(
-            (int) config('emailcv.ai.monthly_limit'),
-            $user->fresh()->monthlyAiLimit()
-        );
+        $this->assertSame($before - 100, $user->fresh()->creditBalance());
+    }
+
+    public function test_a_zero_adjustment_is_rejected(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($this->admin())
+            ->post(route('admin.users.credits', $user), ['amount' => 0])
+            ->assertSessionHasErrors('amount');
+    }
+
+    public function test_a_regular_user_cannot_adjust_credits(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->post(route('admin.users.credits', $user), ['amount' => 5000])
+            ->assertForbidden();
+
+        $this->assertDatabaseCount('credit_transactions', 0);
     }
 }

@@ -76,7 +76,10 @@ required one is missing, rather than booting into a 500 page.
 | `DEEPSEEK_API_KEY` | — | Without it, AI drafting returns a clear error and manual mode still works |
 | `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | — | **All three or none.** Missing any one silently falls back to storing uploads on the local volume, which email clients cannot load photos from |
 | `MAIL_USERNAME` / `MAIL_PASSWORD` / `MAIL_PORT` / `MAIL_SCHEME` | `587` / `tls` | SMTP credentials |
-| `AI_DAILY_LIMIT` / `AI_MONTHLY_LIMIT` | `5` / `30` | Free-tier allowance per user |
+| `CREDIT_MONTHLY_GRANT` | `300` | Credits every account is topped up to each month |
+| `CREDIT_PRICE_APPLICATION_DRAFT` | `10` | Cost of one AI application draft |
+| `CREDIT_PRICE_TEMPLATE_DESIGN` | `30` | Cost of designing one template |
+| `CREDIT_PROMOTION_REWARD` | `50` | Paid to an author when their design is published |
 | `LOG_LEVEL` | `warning` | `debug` while bringing it up |
 | `RUN_QUEUE_WORKER` / `RUN_SCHEDULER` | `false` | Nothing is queued or scheduled today; flip if that changes |
 

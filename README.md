@@ -29,6 +29,59 @@ straight back to them. The app's job is to produce the HTML and show it exactly 
    toggle) with the email in a sandboxed iframe so the app's own theme cannot leak in.
 6. **Copy HTML** or **Download .html**, paste into the extension, attach the CV, send.
 
+## Credits
+
+Every service that costs real money is paid for in credits. Nothing about the
+allowance lives on the `users` table: the balance is the sum of a user's rows in
+`credit_transactions`, so no movement is lost and every spend points at what it
+bought.
+
+| Service | Credits | Measured API cost |
+| --- | --- | --- |
+| AI application draft | 10 | ~1,300 DeepSeek tokens |
+| AI template design | 30 | ~4,000 DeepSeek tokens |
+| Template published to the library | **+50** to the author | — |
+
+Every account is **topped up to 300 credits** at the start of a calendar month —
+30 drafts, or 10 template designs, or any mix. The top-up is lazy rather than
+scheduled, because no scheduler runs in production; a unique index on
+`(user_id, reason, period)` is what makes it safe to attempt on every request.
+
+It is a top-up rather than an addition, so an idle account does not accumulate a
+balance nobody meant to grant. Credits **earned** from a published template are
+never clawed back by it.
+
+Charging happens only after the work succeeds, so a failed or rejected
+generation costs nothing. Admins adjust a balance from the user list, and the
+adjustment is recorded as a ledger entry naming the admin who made it, rather
+than overwriting a number.
+
+## User-designed templates
+
+A user can describe a layout and have the AI build it, in the same token format as
+every other template — so it drops straight into the normal fill-in-or-generate flow.
+
+- **Cost**: 30 credits per design, plus a burst limiter of 2 per 5 minutes. A
+  rejected design costs nothing, and a published one earns its author 50 back.
+- **Terms**: consent is taken before generating and stamped on the template row as
+  `terms_accepted_at`. It is what permits an admin to publish the design; a template
+  without it on record cannot be promoted.
+- **Visibility**: a generated template is `private` and appears only in its author's
+  gallery. An admin can promote it to `global`, at which point every user sees it
+  badged *Community* — shown without the author's name or any personal detail.
+
+### Why generated markup is filtered
+
+Admin-authored template HTML is trusted. AI output driven by a user's own brief is
+not: the brief reaches a language model, and a model can be argued into emitting
+anything. Before a generated template is stored it is passed through
+`TemplateSanitizer`, which rebuilds the markup against a tag and attribute allow-list —
+dropping scripts, event handlers, styles, iframes, forms, `javascript:` URLs, CSS
+`expression()` and any `url()` that could beacon a recipient to a third party — while
+leaving template tokens byte-identical. It is then linted, parsed, and test rendered.
+Anything that fails is fed back to the model for one repair attempt before the request
+is refused.
+
 ## The admin CMS (`/admin`)
 
 - **Overview** — signups, applications, AI runs, token spend, and a list of accounts past the daily
@@ -37,7 +90,9 @@ straight back to them. The app's job is to produce the HTML and show it exactly 
   and set a per-user monthly AI allowance (0 blocks AI while leaving the account usable). A suspended
   user is signed out on their next request and shown the reason at login.
 - **Templates** — paste email HTML; tokens are detected as you type and the user's form is built from
-  them. Includes a Gmail compatibility linter and a live sample render.
+  them. Includes a Gmail compatibility linter and a live sample render. Filter by
+  *Made by users* / *Awaiting review* to see what people have generated, along with the
+  brief they asked for, then **Publish** the good ones to the shared library.
 - **AI usage** — every DeepSeek call with tokens, duration, IP and error text.
 
 ## Template syntax
@@ -105,18 +160,17 @@ PDFs upload as `resource_type: image` (so they get thumbnail transforms); `.doc`
 **Settings → Security → Allow delivery of PDF and ZIP files**, or serve the file through a signed
 Laravel route instead.
 
-## Quotas and abuse handling
+## Abuse handling
 
-- Generations are counted per calendar day and per calendar month; only successful calls count, so a
-  DeepSeek outage never eats a user's allowance.
-- A per-minute rate limiter guards against runaway clients.
+- Credits are only taken on success, so a DeepSeek outage never costs a user anything.
+- Per-minute rate limiters guard against runaway clients independently of the balance.
 - Every call is written to `ai_generations` with tokens, duration and IP, whether it succeeded or not.
-- Admins can cap an individual account or suspend it outright.
+- Admins can adjust a balance, or suspend an account outright.
 
 ## Checks
 
 ```bash
-php artisan test        # 112 tests
+php artisan test        # 202 tests
 ./vendor/bin/phpstan analyse
 ./vendor/bin/pint
 npm run lint && npm run types:check && npm run build

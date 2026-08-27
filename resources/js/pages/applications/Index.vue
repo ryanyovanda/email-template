@@ -14,6 +14,7 @@ import { index as templatesIndex } from '@/routes/templates';
 type ApplicationRow = {
     id: number;
     title: string;
+    display_name: string;
     company: string | null;
     position: string | null;
     mode: string;
@@ -29,7 +30,7 @@ type Paginated = {
 
 defineProps<{
     applications: Paginated;
-    remainingAi: number;
+    credits: number;
 }>();
 
 defineOptions({
@@ -41,7 +42,7 @@ defineOptions({
 function remove(application: ApplicationRow): void {
     if (
         !window.confirm(
-            `Delete "${application.title}"? This cannot be undone.`,
+            `Delete "${application.display_name}"? This cannot be undone.`,
         )
     ) {
         return;
@@ -60,7 +61,7 @@ function remove(application: ApplicationRow): void {
         <div class="flex flex-wrap items-end justify-between gap-4">
             <Heading
                 title="My applications"
-                :description="`${remainingAi} AI generation${remainingAi === 1 ? '' : 's'} left today.`"
+                :description="`${credits.toLocaleString()} credits available.`"
             />
             <Button as-child>
                 <Link :href="templatesIndex()">
@@ -73,7 +74,7 @@ function remove(application: ApplicationRow): void {
             v-if="applications.data.length === 0"
             class="rounded-xl border border-dashed p-12 text-center"
         >
-            <p class="text-muted-foreground text-sm">
+            <p class="text-sm text-muted-foreground">
                 No applications yet. Pick a template to write your first one.
             </p>
             <Button class="mt-4" as-child>
@@ -85,7 +86,7 @@ function remove(application: ApplicationRow): void {
             <div
                 v-for="application in applications.data"
                 :key="application.id"
-                class="hover:bg-accent/40 flex items-center gap-4 p-4 transition-colors"
+                class="flex items-center gap-4 p-4 transition-colors hover:bg-accent/40"
             >
                 <div
                     class="h-10 w-1.5 shrink-0 rounded-full"
@@ -99,19 +100,18 @@ function remove(application: ApplicationRow): void {
                     <Link
                         :href="editApplication(application.id)"
                         class="truncate font-medium hover:underline"
+                        :class="
+                            application.company ? '' : 'text-muted-foreground'
+                        "
                     >
-                        {{ application.title }}
+                        {{ application.display_name }}
                     </Link>
                     <div
-                        class="text-muted-foreground mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"
+                        class="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground"
                     >
-                        <span v-if="application.position || application.company">
-                            {{
-                                [application.position, application.company]
-                                    .filter(Boolean)
-                                    .join(' · ')
-                            }}
-                        </span>
+                        <span v-if="application.position">{{
+                            application.position
+                        }}</span>
                         <span v-if="application.template">{{
                             application.template.name
                         }}</span>

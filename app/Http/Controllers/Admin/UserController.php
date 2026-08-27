@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\BanUserRequest;
 use App\Models\AiGeneration;
+use App\Models\CreditTransaction;
 use App\Models\User;
+use App\Services\Credits\CreditLedger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -13,7 +15,7 @@ use Inertia\Response;
 
 class UserController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request, CreditLedger $credits): Response
     {
         $filter = $request->string('filter')->toString();
 
@@ -45,8 +47,7 @@ class UserController extends Controller
                 'role' => $user->role,
                 'banned_at' => $user->banned_at?->toDateTimeString(),
                 'ban_reason' => $user->ban_reason,
-                'ai_monthly_limit' => $user->ai_monthly_limit,
-                'effective_monthly_limit' => $user->monthlyAiLimit(),
+                'credits' => $credits->balance($user),
                 'applications_count' => $user->applications_count,
                 'ai_today' => $user->ai_generations_today_count,
                 'ai_month' => $user->ai_generations_this_month_count,
@@ -62,8 +63,9 @@ class UserController extends Controller
                 'filter' => $filter,
             ],
             'defaults' => [
-                'monthlyLimit' => (int) config('emailcv.ai.monthly_limit'),
-                'dailyLimit' => (int) config('emailcv.ai.daily_limit'),
+                'monthlyGrant' => (int) config('emailcv.credits.monthly_grant'),
+                'draftPrice' => (int) config('emailcv.credits.prices.application_draft'),
+                'templatePrice' => (int) config('emailcv.credits.prices.template_design'),
                 'abuseThreshold' => (int) config('emailcv.ai.abuse_threshold_per_day'),
             ],
         ]);
@@ -109,15 +111,34 @@ class UserController extends Controller
         return back();
     }
 
-    public function updateLimit(Request $request, User $user): RedirectResponse
+    /**
+     * Add or remove credits by hand. Recorded as a ledger entry with the admin
+     * who made it, rather than overwriting a number.
+     */
+    public function adjustCredits(Request $request, User $user, CreditLedger $credits): RedirectResponse
     {
         $validated = $request->validate([
-            'ai_monthly_limit' => ['nullable', 'integer', 'min:0', 'max:100000'],
+            'amount' => ['required', 'integer', 'min:-100000', 'max:100000', 'not_in:0'],
+            'reason' => ['nullable', 'string', 'max:200'],
+        ], [
+            'amount.not_in' => 'Enter a positive number to add credits, or a negative one to take them away.',
         ]);
 
-        $user->forceFill(['ai_monthly_limit' => $validated['ai_monthly_limit']])->save();
+        $credits->grant($user, CreditTransaction::ADMIN_ADJUSTMENT, (int) $validated['amount'], [
+            'description' => $validated['reason'] ?? null,
+            'created_by' => $request->user()->id,
+        ]);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => 'AI limit updated.']);
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => sprintf(
+                '%s credits %s %s. New balance: %d.',
+                abs((int) $validated['amount']),
+                $validated['amount'] > 0 ? 'added to' : 'taken from',
+                $user->name,
+                $credits->balance($user),
+            ),
+        ]);
 
         return back();
     }

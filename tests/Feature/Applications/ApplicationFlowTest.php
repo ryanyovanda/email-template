@@ -105,6 +105,108 @@ class ApplicationFlowTest extends TestCase
             );
     }
 
+    public function test_an_application_is_named_by_its_company(): void
+    {
+        $user = $this->userWithProfile();
+        $application = Application::factory()->for($user)->create([
+            'title' => 'Untitled application',
+            'company' => 'Upsize Research',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('applications.index'))
+            ->assertInertia(fn ($page) => $page
+                ->where('applications.data.0.display_name', 'Upsize Research')
+            );
+
+        $this->assertSame('Upsize Research', $application->displayName());
+    }
+
+    public function test_a_draft_with_no_company_falls_back_to_its_label(): void
+    {
+        $user = $this->userWithProfile();
+        Application::factory()->for($user)->create([
+            'title' => 'Something I am still writing',
+            'company' => null,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('applications.index'))
+            ->assertInertia(fn ($page) => $page
+                ->where('applications.data.0.display_name', 'Something I am still writing')
+            );
+    }
+
+    public function test_a_new_draft_starts_untitled_rather_than_named_after_the_template(): void
+    {
+        $user = $this->userWithProfile();
+        $template = EmailTemplate::factory()->create(['name' => 'Grayscale Accent']);
+
+        $this->actingAs($user)->post(route('applications.store'), [
+            'email_template_id' => $template->id,
+        ])->assertRedirect();
+
+        $this->assertSame('Untitled application', Application::sole()->displayName());
+    }
+
+    public function test_the_download_filename_follows_the_company(): void
+    {
+        $user = $this->userWithProfile();
+        $application = Application::factory()->for($user)->create(['company' => 'Upsize Research']);
+
+        $this->actingAs($user)
+            ->get(route('applications.download', $application))
+            ->assertOk()
+            ->assertHeader('content-disposition', 'attachment; filename="upsize-research.html"');
+    }
+
+    public function test_the_draft_label_may_be_left_empty(): void
+    {
+        $user = $this->userWithProfile();
+        $application = Application::factory()->for($user)->create();
+
+        $this->actingAs($user)->put(route('applications.update', $application), [
+            'title' => '',
+            'company' => 'Upsize Research',
+            'mode' => 'manual',
+            'field_values' => [],
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertSame('Untitled application', $application->fresh()->title);
+        $this->assertSame('Upsize Research', $application->fresh()->displayName());
+    }
+
+    public function test_a_new_draft_opens_on_the_ai_path(): void
+    {
+        $user = $this->userWithProfile();
+        $template = EmailTemplate::factory()->create();
+
+        $this->actingAs($user)->post(route('applications.store'), [
+            'email_template_id' => $template->id,
+        ]);
+
+        $this->assertSame('ai', Application::sole()->mode);
+    }
+
+    public function test_the_role_details_are_exposed_as_correctable_fields(): void
+    {
+        $user = $this->userWithProfile();
+        $application = Application::factory()->for($user)->create();
+
+        // They are no longer a form the user fills in first, but they must still
+        // reach the page so a misread company or contact name can be fixed.
+        $this->actingAs($user)
+            ->get(route('applications.edit', $application))
+            ->assertOk()
+            ->assertInertia(function ($page) {
+                $tokens = collect($page->toArray()['props']['template']['fields'])
+                    ->pluck('token');
+
+                $this->assertContains('company', $tokens);
+                $this->assertContains('recipient_name', $tokens);
+            });
+    }
+
     public function test_a_user_cannot_open_someone_elses_application(): void
     {
         $application = Application::factory()->create();

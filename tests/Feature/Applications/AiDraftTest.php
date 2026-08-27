@@ -4,6 +4,7 @@ namespace Tests\Feature\Applications;
 
 use App\Models\AiGeneration;
 use App\Models\Application;
+use App\Models\CreditTransaction;
 use App\Models\Profile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -22,8 +23,8 @@ class AiDraftTest extends TestCase
         parent::setUp();
 
         config()->set('services.deepseek.key', 'test-key');
-        config()->set('emailcv.ai.daily_limit', 5);
-        config()->set('emailcv.ai.monthly_limit', 30);
+        config()->set('emailcv.credits.prices.application_draft', 10);
+        config()->set('emailcv.credits.monthly_grant', 300);
 
         RateLimiter::clear('ai-draft:1');
     }
@@ -154,37 +155,64 @@ class AiDraftTest extends TestCase
         Http::assertNothingSent();
     }
 
-    public function test_it_stops_at_the_daily_quota(): void
+    public function test_a_draft_costs_credits(): void
     {
-        config()->set('emailcv.ai.daily_limit', 2);
-        config()->set('emailcv.ai.rate_limit_per_minute', 100);
-
         $this->fakeDeepSeek();
         [$user, $application] = $this->setup_user();
 
-        AiGeneration::factory()->count(2)->create([
-            'user_id' => $user->id,
-            'status' => 'success',
+        $before = $user->creditBalance();
+
+        $response = $this->actingAs($user)->postJson(
+            route('applications.ai-draft', $application),
+            ['job_post' => self::JOB_POST]
+        );
+
+        $response->assertOk();
+
+        $this->assertSame($before - 10, $user->fresh()->creditBalance());
+        $this->assertSame($before - 10, $response->json('credits'));
+
+        $spend = CreditTransaction::where('reason', CreditTransaction::APPLICATION_DRAFT)->sole();
+        $this->assertSame(-10, $spend->amount);
+        $this->assertSame(AiGeneration::sole()->id, $spend->ai_generation_id);
+    }
+
+    public function test_it_stops_when_the_balance_will_not_cover_a_draft(): void
+    {
+        $this->fakeDeepSeek();
+        [$user, $application] = $this->setup_user();
+
+        // Drain everything but a few credits.
+        $user->creditTransactions()->create([
+            'amount' => -($user->creditBalance() - 5),
+            'reason' => CreditTransaction::ADMIN_ADJUSTMENT,
+        ]);
+
+        $this->assertSame(5, $user->fresh()->creditBalance());
+
+        $this->actingAs($user)->postJson(
+            route('applications.ai-draft', $application),
+            ['job_post' => self::JOB_POST]
+        )->assertStatus(402);
+
+        Http::assertNothingSent();
+    }
+
+    public function test_an_admin_can_take_a_users_credits_away(): void
+    {
+        $this->fakeDeepSeek();
+        [$user, $application] = $this->setup_user();
+
+        $user->creditTransactions()->create([
+            'amount' => -$user->creditBalance(),
+            'reason' => CreditTransaction::ADMIN_ADJUSTMENT,
+            'description' => 'Suspected abuse',
         ]);
 
         $this->actingAs($user)->postJson(
             route('applications.ai-draft', $application),
             ['job_post' => self::JOB_POST]
-        )->assertStatus(429);
-
-        Http::assertNothingSent();
-    }
-
-    public function test_an_admin_can_zero_out_a_users_allowance(): void
-    {
-        $this->fakeDeepSeek();
-        [$user, $application] = $this->setup_user();
-        $user->forceFill(['ai_monthly_limit' => 0])->save();
-
-        $this->actingAs($user)->postJson(
-            route('applications.ai-draft', $application),
-            ['job_post' => self::JOB_POST]
-        )->assertStatus(429);
+        )->assertStatus(402);
 
         Http::assertNothingSent();
     }
@@ -202,7 +230,8 @@ class AiDraftTest extends TestCase
         $generation = AiGeneration::sole();
 
         $this->assertSame('failed', $generation->status);
-        $this->assertSame(0, $user->fresh()->aiGenerationsThisMonth(), 'Failed calls must not eat the allowance.');
+        $this->assertSame(300, $user->fresh()->creditBalance(), 'A failed call must not cost credits.');
+        $this->assertDatabaseMissing('credit_transactions', ['reason' => CreditTransaction::APPLICATION_DRAFT]);
     }
 
     public function test_a_user_cannot_generate_on_someone_elses_application(): void

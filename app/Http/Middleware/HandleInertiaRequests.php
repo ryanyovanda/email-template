@@ -43,6 +43,9 @@ class HandleInertiaRequests extends Middleware
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'isAdmin' => (bool) $request->user()?->isAdmin(),
+            // Shown in the sidebar on every page, so a user always knows what
+            // an AI action will cost them before they click it.
+            'credits' => fn (): ?int => $request->user()?->creditBalance(),
             // Read by the editor's fetch() calls, which bypass Inertia's own
             // XSRF handling because they expect JSON back.
             'csrfToken' => $request->session()->token(),

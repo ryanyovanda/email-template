@@ -22,10 +22,7 @@ class ApplicationContentGenerator
 
     public function __construct(private DeepSeekClient $client) {}
 
-    /**
-     * @return array<string, mixed> values keyed by template token
-     */
-    public function generate(User $user, Application $application, EmailTemplate $template, Profile $profile): array
+    public function generate(User $user, Application $application, EmailTemplate $template, Profile $profile): GeneratedContent
     {
         $fields = $template->aiFields();
 
@@ -46,9 +43,10 @@ class ApplicationContentGenerator
             throw $e;
         }
 
-        $this->record($user, $application, 'success', $result['usage'], (int) ((microtime(true) - $startedAt) * 1000));
-
-        return $this->normalise($result['content'], $fields);
+        return new GeneratedContent(
+            $this->normalise($result['content'], $fields),
+            $this->record($user, $application, 'success', $result['usage'], (int) ((microtime(true) - $startedAt) * 1000)),
+        );
     }
 
     private function systemPrompt(): string
@@ -197,9 +195,9 @@ class ApplicationContentGenerator
     /**
      * @param  array<string, int>  $usage
      */
-    private function record(User $user, Application $application, string $status, array $usage, int $durationMs, ?string $error = null): void
+    private function record(User $user, Application $application, string $status, array $usage, int $durationMs, ?string $error = null): AiGeneration
     {
-        AiGeneration::create([
+        return AiGeneration::create([
             'user_id' => $user->id,
             'application_id' => $application->id,
             'model' => $this->client->model(),

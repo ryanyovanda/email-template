@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Ban, Search, ShieldCheck, SlidersHorizontal } from '@lucide/vue';
+import { Ban, Coins, Search, ShieldCheck } from '@lucide/vue';
 import { ref, watch } from 'vue';
 import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
@@ -12,8 +12,8 @@ import { cn } from '@/lib/utils';
 import { dashboard as adminDashboard } from '@/routes/admin';
 import {
     ban as banUser,
+    credits as adjustCredits,
     index as adminUsersIndex,
-    limit as updateLimit,
     unban as unbanUser,
 } from '@/routes/admin/users';
 
@@ -24,11 +24,9 @@ type UserRow = {
     role: string;
     banned_at: string | null;
     ban_reason: string | null;
-    ai_monthly_limit: number | null;
-    effective_monthly_limit: number;
+    credits: number;
     applications_count: number;
     ai_today: number;
-    ai_month: number;
     full_name: string | null;
     has_cv: boolean;
     created_at: string | null;
@@ -41,8 +39,9 @@ const props = defineProps<{
     };
     filters: { search: string; filter: string };
     defaults: {
-        monthlyLimit: number;
-        dailyLimit: number;
+        monthlyGrant: number;
+        draftPrice: number;
+        templatePrice: number;
         abuseThreshold: number;
     };
 }>();
@@ -59,8 +58,9 @@ defineOptions({
 const search = ref(props.filters.search);
 const banTarget = ref<UserRow | null>(null);
 const banReason = ref('');
-const limitTarget = ref<UserRow | null>(null);
-const limitValue = ref<string>('');
+const creditTarget = ref<UserRow | null>(null);
+const creditAmount = ref<string>('');
+const creditReason = ref('');
 
 const tabs = [
     { key: '', label: 'All' },
@@ -106,25 +106,23 @@ function unban(user: UserRow): void {
     router.delete(unbanUser(user.id).url, { preserveScroll: true });
 }
 
-function openLimit(user: UserRow): void {
-    limitTarget.value = user;
-    limitValue.value = user.ai_monthly_limit?.toString() ?? '';
+function openCredits(user: UserRow): void {
+    creditTarget.value = user;
+    creditAmount.value = '';
+    creditReason.value = '';
 }
 
-function saveLimit(): void {
-    if (!limitTarget.value) {
+function saveCredits(): void {
+    if (!creditTarget.value || creditAmount.value === '') {
         return;
     }
 
-    router.patch(
-        updateLimit(limitTarget.value.id).url,
-        {
-            ai_monthly_limit:
-                limitValue.value === '' ? null : Number(limitValue.value),
-        },
+    router.post(
+        adjustCredits(creditTarget.value.id).url,
+        { amount: Number(creditAmount.value), reason: creditReason.value },
         {
             preserveScroll: true,
-            onSuccess: () => (limitTarget.value = null),
+            onSuccess: () => (creditTarget.value = null),
         },
     );
 }
@@ -136,13 +134,13 @@ function saveLimit(): void {
     <div class="space-y-6 p-4">
         <Heading
             title="Users"
-            :description="`Default allowance is ${defaults.dailyLimit} AI generations a day and ${defaults.monthlyLimit} a month.`"
+            :description="`Everyone gets ${defaults.monthlyGrant} credits a month. A draft costs ${defaults.draftPrice}, a template design ${defaults.templatePrice}.`"
         />
 
         <div class="flex flex-wrap items-center gap-3">
             <div class="relative flex-1 sm:max-w-xs">
                 <Search
-                    class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                    class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
                 />
                 <Input
                     v-model="search"
@@ -151,7 +149,7 @@ function saveLimit(): void {
                 />
             </div>
 
-            <div class="bg-muted flex flex-wrap gap-1 rounded-lg p-1">
+            <div class="flex flex-wrap gap-1 rounded-lg bg-muted p-1">
                 <Button
                     v-for="tab in tabs"
                     :key="tab.key"
@@ -169,7 +167,10 @@ function saveLimit(): void {
                     <Link
                         :href="
                             adminUsersIndex({
-                                query: { filter: tab.key, search: filters.search },
+                                query: {
+                                    filter: tab.key,
+                                    search: filters.search,
+                                },
                             })
                         "
                         >{{ tab.label }}</Link
@@ -180,7 +181,7 @@ function saveLimit(): void {
 
         <div class="overflow-x-auto rounded-xl border">
             <table class="w-full text-sm">
-                <thead class="bg-muted/50 text-muted-foreground text-xs">
+                <thead class="bg-muted/50 text-xs text-muted-foreground">
                     <tr>
                         <th class="px-4 py-3 text-left font-medium">User</th>
                         <th class="px-4 py-3 text-left font-medium">Joined</th>
@@ -189,9 +190,11 @@ function saveLimit(): void {
                             AI today
                         </th>
                         <th class="px-4 py-3 text-right font-medium">
-                            AI this month
+                            Credits
                         </th>
-                        <th class="px-4 py-3 text-right font-medium">Actions</th>
+                        <th class="px-4 py-3 text-right font-medium">
+                            Actions
+                        </th>
                     </tr>
                 </thead>
                 <tbody class="divide-y">
@@ -211,24 +214,24 @@ function saveLimit(): void {
                                 </span>
                                 <span
                                     v-if="user.banned_at"
-                                    class="border-destructive/40 text-destructive rounded-full border px-2 py-0.5 text-[10px] font-normal"
+                                    class="rounded-full border border-destructive/40 px-2 py-0.5 text-[10px] font-normal text-destructive"
                                 >
                                     suspended
                                 </span>
                             </div>
-                            <div class="text-muted-foreground text-xs">
+                            <div class="text-xs text-muted-foreground">
                                 {{ user.email }}
                                 <span v-if="!user.has_cv"> · no CV</span>
                             </div>
                             <div
                                 v-if="user.ban_reason"
-                                class="text-destructive mt-1 text-xs"
+                                class="mt-1 text-xs text-destructive"
                             >
                                 {{ user.ban_reason }}
                             </div>
                         </td>
                         <td
-                            class="text-muted-foreground px-4 py-3 text-xs whitespace-nowrap"
+                            class="px-4 py-3 text-xs whitespace-nowrap text-muted-foreground"
                         >
                             {{ user.created_at }}
                         </td>
@@ -239,30 +242,31 @@ function saveLimit(): void {
                             class="px-4 py-3 text-right"
                             :class="
                                 user.ai_today >= defaults.abuseThreshold
-                                    ? 'text-destructive font-semibold'
+                                    ? 'font-semibold text-destructive'
                                     : ''
                             "
                         >
                             {{ user.ai_today }}
                         </td>
                         <td class="px-4 py-3 text-right">
-                            {{ user.ai_month }}
-                            <span class="text-muted-foreground text-xs">
-                                / {{ user.effective_monthly_limit }}
-                                <span v-if="user.ai_monthly_limit !== null"
-                                    >*</span
-                                >
-                            </span>
+                            <span
+                                :class="
+                                    user.credits < defaults.draftPrice
+                                        ? 'font-semibold text-destructive'
+                                        : ''
+                                "
+                                >{{ user.credits.toLocaleString() }}</span
+                            >
                         </td>
                         <td class="px-4 py-3">
                             <div class="flex justify-end gap-1.5">
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    @click="openLimit(user)"
+                                    @click="openCredits(user)"
                                 >
-                                    <SlidersHorizontal class="size-3.5" />
-                                    Limit
+                                    <Coins class="size-3.5" />
+                                    Credits
                                 </Button>
                                 <Button
                                     v-if="user.banned_at"
@@ -287,7 +291,7 @@ function saveLimit(): void {
                     <tr v-if="users.data.length === 0">
                         <td
                             colspan="6"
-                            class="text-muted-foreground px-4 py-10 text-center text-sm"
+                            class="px-4 py-10 text-center text-sm text-muted-foreground"
                         >
                             No users match that filter.
                         </td>
@@ -319,11 +323,13 @@ function saveLimit(): void {
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
         @click.self="banTarget = null"
     >
-        <div class="bg-background w-full max-w-md rounded-xl border p-5 shadow-lg">
+        <div
+            class="w-full max-w-md rounded-xl border bg-background p-5 shadow-lg"
+        >
             <h2 class="text-base font-semibold">
                 Suspend {{ banTarget.name }}?
             </h2>
-            <p class="text-muted-foreground mt-1 text-sm">
+            <p class="mt-1 text-sm text-muted-foreground">
                 They are signed out immediately and cannot log back in. Their
                 drafts are kept.
             </p>
@@ -354,37 +360,55 @@ function saveLimit(): void {
     </div>
 
     <!-- AI limit dialog -->
+    <!-- Credit adjustment dialog -->
     <div
-        v-if="limitTarget"
+        v-if="creditTarget"
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-        @click.self="limitTarget = null"
+        @click.self="creditTarget = null"
     >
-        <div class="bg-background w-full max-w-md rounded-xl border p-5 shadow-lg">
+        <div
+            class="w-full max-w-md rounded-xl border bg-background p-5 shadow-lg"
+        >
             <h2 class="text-base font-semibold">
-                AI limit for {{ limitTarget.name }}
+                Adjust credits for {{ creditTarget.name }}
             </h2>
-            <p class="text-muted-foreground mt-1 text-sm">
-                Monthly generation cap. Leave blank to use the app default of
-                {{ defaults.monthlyLimit }}. Set 0 to block AI entirely while
-                keeping the account usable.
+            <p class="mt-1 text-sm text-muted-foreground">
+                Balance is {{ creditTarget.credits.toLocaleString() }}. Enter a
+                positive number to add credits or a negative one to take them
+                away. Recorded against your account.
             </p>
 
             <div class="mt-4 grid gap-2">
-                <Label for="limit">Monthly limit</Label>
+                <Label for="amount">Amount</Label>
                 <Input
-                    id="limit"
-                    v-model="limitValue"
+                    id="amount"
+                    v-model="creditAmount"
                     type="number"
-                    min="0"
-                    :placeholder="`${defaults.monthlyLimit} (default)`"
+                    placeholder="e.g. 300 or -50"
+                />
+            </div>
+
+            <div class="mt-3 grid gap-2">
+                <Label for="credit-reason">Note (optional)</Label>
+                <Input
+                    id="credit-reason"
+                    v-model="creditReason"
+                    placeholder="Goodwill after a failed generation"
                 />
             </div>
 
             <div class="mt-5 flex justify-end gap-2">
-                <Button variant="outline" @click="limitTarget = null">
+                <Button variant="outline" @click="creditTarget = null">
                     Cancel
                 </Button>
-                <Button @click="saveLimit">Save limit</Button>
+                <Button
+                    :disabled="
+                        creditAmount === '' || Number(creditAmount) === 0
+                    "
+                    @click="saveCredits"
+                >
+                    Apply
+                </Button>
             </div>
         </div>
     </div>
