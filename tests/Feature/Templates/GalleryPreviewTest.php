@@ -52,7 +52,7 @@ class GalleryPreviewTest extends TestCase
         $this->seed(EmailTemplateSeeder::class);
 
         $user = $this->user([
-            'full_name' => 'Fajira Zenitha Purnama',
+            'full_name' => 'Jane Doe',
             'location' => 'Bandung',
         ]);
 
@@ -62,7 +62,7 @@ class GalleryPreviewTest extends TestCase
                 $previews = collect($page->toArray()['props']['templates'])->pluck('preview_html');
 
                 $this->assertTrue(
-                    $previews->every(fn (string $html): bool => str_contains($html, 'Fajira Zenitha Purnama')),
+                    $previews->every(fn (string $html): bool => str_contains($html, 'Jane Doe')),
                     'Previews should show the viewer their own name.'
                 );
             });

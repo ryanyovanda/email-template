@@ -475,9 +475,9 @@ function save(): void {
         <div class="xl:sticky xl:top-4 xl:h-[calc(100vh-6rem)]">
             <GmailPreview
                 :html="previewHtml"
-                subject="Application — Senior Associate | Fajira Zenitha Purnama"
-                sender-name="Fajira Zenitha Purnama"
-                sender-email="fajira@example.com"
+                subject="Application — Senior Associate | Jane Doe"
+                sender-name="Jane Doe"
+                sender-email="jane.doe@example.com"
                 attachment="cv.pdf"
                 :loading="analysing"
             />

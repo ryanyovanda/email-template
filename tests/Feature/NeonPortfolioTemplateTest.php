@@ -33,8 +33,8 @@ class NeonPortfolioTemplateTest extends TestCase
         $template = EmailTemplate::where('slug', $slug)->sole();
 
         $profile = Profile::factory()->make([
-            'full_name' => 'Fajira Zenitha Purnama',
-            'portfolio_url' => 'https://fajira.design',
+            'full_name' => 'Jane Doe',
+            'portfolio_url' => 'https://janedoe.example.com',
         ]);
 
         $values = [];
@@ -49,7 +49,7 @@ class NeonPortfolioTemplateTest extends TestCase
             $template,
             $profile,
             $values,
-            new Application(['company' => 'Studio Kolektif', 'position' => 'Senior Brand Designer', 'recipient_name' => 'Riko'])
+            new Application(['company' => 'Studio Kolektif', 'position' => 'Senior Brand Designer', 'recipient_name' => 'Sam'])
         );
     }
 

@@ -38,9 +38,9 @@ class AiDraftTest extends TestCase
                         'content' => json_encode($content ?? [
                             'intro' => 'I am applying for the Senior Associate role.',
                             'skills' => ['TNA', 'Payroll', 'Vendor Management'],
-                            'company' => 'Upsize Research',
+                            'company' => 'Acme Corp',
                             'position' => 'Senior Associate',
-                            'recipient_name' => 'Riko',
+                            'recipient_name' => 'Sam',
                         ]),
                     ],
                 ]],
@@ -94,8 +94,8 @@ class AiDraftTest extends TestCase
 
         $application->refresh();
 
-        $this->assertSame('Upsize Research', $application->company);
-        $this->assertSame('Riko', $application->recipient_name);
+        $this->assertSame('Acme Corp', $application->company);
+        $this->assertSame('Sam', $application->recipient_name);
         $this->assertArrayNotHasKey('company', $application->field_values);
     }
 

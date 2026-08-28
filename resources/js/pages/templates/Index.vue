@@ -252,7 +252,7 @@ function start(template: Template): void {
                 <GmailPreview
                     v-if="previewing"
                     :html="previewing.preview_html"
-                    subject="Application — Senior Associate | Upsize Research"
+                    subject="Application — Senior Associate | Acme Corp"
                     :sender-name="$page.props.auth.user.name"
                     :sender-email="$page.props.auth.user.email"
                     attachment="cv.pdf"

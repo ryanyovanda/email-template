@@ -171,7 +171,7 @@ function submit(andContinue: boolean): void {
                                 id="full_name"
                                 v-model="form.full_name"
                                 required
-                                placeholder="Fajira Zenitha Purnama"
+                                placeholder="Jane Doe"
                             />
                             <InputError :message="form.errors.full_name" />
                         </div>
@@ -207,7 +207,7 @@ function submit(andContinue: boolean): void {
                             <Input
                                 id="phone"
                                 v-model="form.phone"
-                                placeholder="0851-5648-0171"
+                                placeholder="0800-000-0000"
                             />
                             <InputError :message="form.errors.phone" />
                         </div>

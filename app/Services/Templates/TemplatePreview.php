@@ -35,10 +35,10 @@ class TemplatePreview
     public function profile(?Profile $real = null): Profile
     {
         $sample = [
-            'full_name' => 'Fajira Zenitha Purnama',
+            'full_name' => 'Jane Doe',
             'headline' => 'Learning & Development Specialist',
-            'contact_email' => 'fajira@example.com',
-            'phone' => '0851-5648-0171',
+            'contact_email' => 'jane.doe@example.com',
+            'phone' => '0800-000-0000',
             'location' => 'Central Jakarta',
             'portfolio_url' => 'https://example.com/portfolio',
             'linkedin_url' => 'https://linkedin.com/in/example',
@@ -61,8 +61,8 @@ class TemplatePreview
     public function application(): Application
     {
         return new Application([
-            'recipient_name' => 'Riko',
-            'company' => 'Upsize Research',
+            'recipient_name' => 'Sam',
+            'company' => 'Acme Corp',
             'position' => 'Senior Associate',
         ]);
     }
@@ -107,8 +107,8 @@ class TemplatePreview
     private function sampleLine(string $token): string
     {
         return match ($token) {
-            'recipient_name' => 'Riko',
-            'company' => 'Upsize Research',
+            'recipient_name' => 'Sam',
+            'company' => 'Acme Corp',
             'position' => 'Senior Associate',
             default => str_ends_with($token, '_value')
                 ? '4+'

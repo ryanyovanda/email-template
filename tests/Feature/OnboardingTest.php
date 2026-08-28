@@ -27,10 +27,10 @@ class OnboardingTest extends TestCase
     private function payload(array $overrides = []): array
     {
         return [
-            'full_name' => 'Fajira Zenitha Purnama',
+            'full_name' => 'Jane Doe',
             'headline' => 'Learning & Development Specialist',
-            'contact_email' => 'fajira@example.com',
-            'phone' => '0851-5648-0171',
+            'contact_email' => 'jane.doe@example.com',
+            'phone' => '0800-000-0000',
             'location' => 'Central Jakarta',
             ...$overrides,
         ];
@@ -51,14 +51,14 @@ class OnboardingTest extends TestCase
     public function test_the_profile_page_renders_saved_details(): void
     {
         $user = User::factory()->create();
-        Profile::factory()->for($user)->create(['full_name' => 'Fajira Zenitha Purnama']);
+        Profile::factory()->for($user)->create(['full_name' => 'Jane Doe']);
 
         $this->actingAs($user)
             ->get(route('applicant-profile.edit'))
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->where('isFirstRun', false)
-                ->where('profile.full_name', 'Fajira Zenitha Purnama')
+                ->where('profile.full_name', 'Jane Doe')
             );
     }
 
@@ -73,7 +73,7 @@ class OnboardingTest extends TestCase
         $profile = Profile::sole();
 
         $this->assertSame($user->id, $profile->user_id);
-        $this->assertSame('Fajira Zenitha Purnama', $profile->full_name);
+        $this->assertSame('Jane Doe', $profile->full_name);
         $this->assertNotNull($user->fresh()->onboarded_at);
     }
 
@@ -142,7 +142,7 @@ class OnboardingTest extends TestCase
     public function test_a_user_can_paste_their_cv_text_by_hand(): void
     {
         $user = User::factory()->create();
-        $text = str_repeat('Managed corporate L&D projects for PT KAI. ', 12);
+        $text = str_repeat('Managed corporate L&D projects for Acme Corp. ', 12);
 
         $this->actingAs($user)->post(
             route('applicant-profile.update'),

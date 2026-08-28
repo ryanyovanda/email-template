@@ -50,7 +50,7 @@ class ApplicationFlowTest extends TestCase
 
         $response = $this->actingAs($user)->post(route('applications.store'), [
             'email_template_id' => $template->id,
-            'title' => 'Application — Upsize Research',
+            'title' => 'Application — Acme Corp',
         ]);
 
         $application = Application::sole();
@@ -110,16 +110,16 @@ class ApplicationFlowTest extends TestCase
         $user = $this->userWithProfile();
         $application = Application::factory()->for($user)->create([
             'title' => 'Untitled application',
-            'company' => 'Upsize Research',
+            'company' => 'Acme Corp',
         ]);
 
         $this->actingAs($user)
             ->get(route('applications.index'))
             ->assertInertia(fn ($page) => $page
-                ->where('applications.data.0.display_name', 'Upsize Research')
+                ->where('applications.data.0.display_name', 'Acme Corp')
             );
 
-        $this->assertSame('Upsize Research', $application->displayName());
+        $this->assertSame('Acme Corp', $application->displayName());
     }
 
     public function test_a_draft_with_no_company_falls_back_to_its_label(): void
@@ -152,12 +152,12 @@ class ApplicationFlowTest extends TestCase
     public function test_the_download_filename_follows_the_company(): void
     {
         $user = $this->userWithProfile();
-        $application = Application::factory()->for($user)->create(['company' => 'Upsize Research']);
+        $application = Application::factory()->for($user)->create(['company' => 'Acme Corp']);
 
         $this->actingAs($user)
             ->get(route('applications.download', $application))
             ->assertOk()
-            ->assertHeader('content-disposition', 'attachment; filename="upsize-research.html"');
+            ->assertHeader('content-disposition', 'attachment; filename="acme-corp.html"');
     }
 
     public function test_the_draft_label_may_be_left_empty(): void
@@ -167,13 +167,13 @@ class ApplicationFlowTest extends TestCase
 
         $this->actingAs($user)->put(route('applications.update', $application), [
             'title' => '',
-            'company' => 'Upsize Research',
+            'company' => 'Acme Corp',
             'mode' => 'manual',
             'field_values' => [],
         ])->assertRedirect()->assertSessionHasNoErrors();
 
         $this->assertSame('Untitled application', $application->fresh()->title);
-        $this->assertSame('Upsize Research', $application->fresh()->displayName());
+        $this->assertSame('Acme Corp', $application->fresh()->displayName());
     }
 
     public function test_a_new_draft_opens_on_the_ai_path(): void
@@ -222,17 +222,17 @@ class ApplicationFlowTest extends TestCase
         $application = Application::factory()->for($user)->create();
 
         $this->actingAs($user)->put(route('applications.update', $application), [
-            'title' => 'Upsize Research — Senior Associate',
-            'company' => 'Upsize Research',
+            'title' => 'Acme Corp — Senior Associate',
+            'company' => 'Acme Corp',
             'position' => 'Senior Associate',
-            'recipient_name' => 'Riko',
+            'recipient_name' => 'Sam',
             'mode' => 'manual',
             'field_values' => ['intro' => 'I am applying for this role.', 'skills' => "TNA\nLMS"],
         ])->assertRedirect();
 
         $application->refresh();
 
-        $this->assertSame('Upsize Research', $application->company);
+        $this->assertSame('Acme Corp', $application->company);
         $this->assertSame('I am applying for this role.', $application->field_values['intro']);
         $this->assertStringContainsString('I am applying for this role.', (string) $application->rendered_html);
         $this->assertStringContainsString('<span>TNA</span>', (string) $application->rendered_html);

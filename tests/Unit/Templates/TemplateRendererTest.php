@@ -23,9 +23,9 @@ class TemplateRendererTest extends TestCase
     private function profile(array $overrides = []): Profile
     {
         return new Profile([
-            'full_name' => 'Fajira Zenitha Purnama',
-            'contact_email' => 'fajira@example.com',
-            'phone' => '0851-5648-0171',
+            'full_name' => 'Jane Doe',
+            'contact_email' => 'jane.doe@example.com',
+            'phone' => '0800-000-0000',
             'location' => 'Central Jakarta',
             'portfolio_url' => 'https://example.com/folio',
             ...$overrides,
@@ -39,7 +39,7 @@ class TemplateRendererTest extends TestCase
             $this->profile(),
         );
 
-        $this->assertSame('<p>Fajira Zenitha Purnama — Central Jakarta</p>', $html);
+        $this->assertSame('<p>Jane Doe — Central Jakarta</p>', $html);
     }
 
     public function test_it_escapes_user_content(): void
@@ -81,7 +81,7 @@ class TemplateRendererTest extends TestCase
             $this->profile(),
         );
 
-        $this->assertSame('<a href="https://wa.me/6285156480171">chat</a>', $html);
+        $this->assertSame('<a href="https://wa.me/628000000000">chat</a>', $html);
     }
 
     public function test_it_repeats_block_tokens_for_each_list_item(): void
@@ -128,7 +128,7 @@ class TemplateRendererTest extends TestCase
 
     public function test_saved_values_cannot_override_profile_or_application_fields(): void
     {
-        $application = new Application(['company' => 'Upsize Research']);
+        $application = new Application(['company' => 'Acme Corp']);
 
         $html = (new TemplateRenderer)->render(
             $this->template('<p>{{ full_name }} · {{ company }}</p>'),
@@ -137,8 +137,8 @@ class TemplateRendererTest extends TestCase
             $application,
         );
 
-        $this->assertStringContainsString('Fajira Zenitha Purnama', $html);
-        $this->assertStringContainsString('Upsize Research', $html);
+        $this->assertStringContainsString('Jane Doe', $html);
+        $this->assertStringContainsString('Acme Corp', $html);
         $this->assertStringNotContainsString('Hacked Co', $html);
     }
 

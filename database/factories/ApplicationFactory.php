@@ -23,7 +23,7 @@ class ApplicationFactory extends Factory
             'title' => 'Application — '.fake()->company(),
             'company' => fake()->company(),
             'position' => 'Senior Associate',
-            'recipient_name' => 'Riko',
+            'recipient_name' => 'Sam',
             'mode' => 'manual',
             'field_values' => [],
         ];
