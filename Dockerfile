@@ -22,8 +22,6 @@ COPY . .
 RUN composer dump-autoload --optimize --classmap-authoritative --no-dev \
  && composer run-script post-autoload-dump --no-dev
 
- RUN chown -R www-data:www-data /var/lib/nginx/tmp
-
 # =============================================================================
 # 2. Front-end assets
 #
