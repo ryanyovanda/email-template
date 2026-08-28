@@ -9,13 +9,18 @@ import {
     LayoutTemplate,
     Lock,
     Mail,
+    Menu,
     PencilLine,
     Smartphone,
     Sparkles,
     User,
+    X,
     Zap,
 } from '@lucide/vue';
 import { dashboard, login, register } from '@/routes';
+import { ref } from 'vue';
+
+const mobileMenuOpen = ref(false);
 
 const steps = [
     {
@@ -62,8 +67,9 @@ const steps = [
             "
         >
             <div
-                class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4"
+                class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4"
             >
+                <!-- Logo -->
                 <div class="flex items-center gap-2">
                     <div
                         class="flex size-7 items-center justify-center rounded-lg"
@@ -76,7 +82,8 @@ const steps = [
                     >
                 </div>
 
-                <nav class="flex items-center gap-1 text-sm">
+                <!-- Desktop nav -->
+                <nav class="hidden items-center gap-1 text-sm md:flex">
                     <Link
                         href="/tutorial"
                         class="px-4 py-2 font-medium transition-colors duration-200"
@@ -107,14 +114,68 @@ const steps = [
                         >
                     </template>
                 </nav>
+
+                <!-- Mobile: CTA + hamburger -->
+                <div class="flex items-center gap-2 md:hidden">
+                    <Link
+                        v-if="$page.props.auth.user"
+                        :href="dashboard()"
+                        class="rounded-full px-4 py-1.5 text-sm font-semibold text-white"
+                        style="background: #8b5cf6"
+                        >Dashboard</Link
+                    >
+                    <Link
+                        v-else
+                        :href="register()"
+                        class="rounded-full px-4 py-1.5 text-sm font-semibold text-white"
+                        style="background: #8b5cf6"
+                        >Mulai gratis</Link
+                    >
+                    <button
+                        class="flex size-9 items-center justify-center rounded-lg transition-colors"
+                        style="background: rgba(0, 0, 0, 0.06)"
+                        @click="mobileMenuOpen = !mobileMenuOpen"
+                    >
+                        <X v-if="mobileMenuOpen" class="size-4" />
+                        <Menu v-else class="size-4" />
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile menu dropdown -->
+            <div
+                v-if="mobileMenuOpen"
+                class="border-t px-4 pb-4 md:hidden"
+                style="
+                    background: rgba(245, 245, 240, 0.97);
+                    border-color: rgba(0, 0, 0, 0.06);
+                "
+            >
+                <div class="flex flex-col gap-1 pt-2 text-sm">
+                    <Link
+                        href="/tutorial"
+                        class="rounded-xl px-4 py-3 font-medium"
+                        style="color: #555"
+                        @click="mobileMenuOpen = false"
+                        >Tutorial</Link
+                    >
+                    <Link
+                        v-if="!$page.props.auth.user"
+                        :href="login()"
+                        class="rounded-xl px-4 py-3 font-medium"
+                        style="color: #555"
+                        @click="mobileMenuOpen = false"
+                        >Log in</Link
+                    >
+                </div>
             </div>
         </header>
 
         <!-- HERO -->
         <section
-            class="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 pt-20"
+            class="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 pt-20 sm:px-6"
         >
-            <!-- Subtle radial glow -->
+            <!-- Glow -->
             <div
                 class="pointer-events-none absolute inset-0"
                 style="
@@ -127,20 +188,20 @@ const steps = [
             ></div>
 
             <div class="relative z-10 mx-auto max-w-5xl text-center">
-                <!-- Pill badge -->
-                <div class="mb-8 inline-flex items-center gap-2">
+                <!-- Badge -->
+                <div class="mb-6 inline-flex items-center gap-2 sm:mb-8">
                     <span
-                        class="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium text-white"
+                        class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium text-white sm:px-4 sm:py-1.5 sm:text-sm"
                         style="background: #8b5cf6"
                     >
-                        <Sparkles class="size-3.5" />
+                        <Sparkles class="size-3 sm:size-3.5" />
                         AI-powered email lamaran
                     </span>
                 </div>
 
                 <!-- Headline -->
                 <h1
-                    class="mb-6 text-6xl leading-none font-black tracking-tight text-gray-900 lg:text-8xl"
+                    class="mb-5 text-4xl leading-none font-black tracking-tight text-gray-900 sm:mb-6 sm:text-5xl md:text-6xl lg:text-8xl"
                 >
                     Email lamaran yang<br />
                     bikin HR berhenti<br />
@@ -149,20 +210,20 @@ const steps = [
 
                 <!-- Subtext -->
                 <p
-                    class="mx-auto mb-10 max-w-lg text-xl leading-relaxed"
+                    class="mx-auto mb-8 max-w-sm text-base leading-relaxed sm:mb-10 sm:max-w-lg sm:text-xl"
                     style="color: #888"
                 >
                     Buat email lamaran HTML yang elegan dari CV kamu, preview
                     persis kayak di Gmail, kirim dari akun Gmail kamu sendiri.
                 </p>
 
-                <!-- CTA buttons -->
+                <!-- CTA -->
                 <div
-                    class="mb-8 flex flex-wrap items-center justify-center gap-4"
+                    class="mb-6 flex flex-col items-center justify-center gap-3 sm:mb-8 sm:flex-row sm:gap-4"
                 >
                     <Link
                         :href="$page.props.auth.user ? dashboard() : register()"
-                        class="inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-base font-bold text-white transition-opacity duration-200 hover:opacity-90"
+                        class="inline-flex w-full items-center justify-center gap-2 rounded-xl px-7 py-3.5 text-base font-bold text-white transition-opacity duration-200 hover:opacity-90 sm:w-auto"
                         style="background: #8b5cf6"
                     >
                         Mulai gratis
@@ -170,7 +231,7 @@ const steps = [
                     </Link>
                     <Link
                         href="/tutorial"
-                        class="inline-flex items-center gap-2 rounded-xl border px-7 py-3.5 text-base font-semibold transition-colors duration-200"
+                        class="inline-flex w-full items-center justify-center gap-2 rounded-xl border px-7 py-3.5 text-base font-semibold transition-colors duration-200 sm:w-auto"
                         style="
                             border-color: rgba(0, 0, 0, 0.15);
                             color: #555;
@@ -183,26 +244,34 @@ const steps = [
 
                 <!-- Social proof -->
                 <div
-                    class="flex flex-wrap items-center justify-center gap-6 text-sm font-medium"
+                    class="flex flex-wrap items-center justify-center gap-3 text-xs font-medium sm:gap-6 sm:text-sm"
                     style="color: #999"
                 >
-                    <span class="flex items-center gap-1.5">
-                        <Check class="size-4" style="color: #8b5cf6" />
-                        Gratis selamanya
-                    </span>
-                    <span class="flex items-center gap-1.5">
-                        <Check class="size-4" style="color: #8b5cf6" />
-                        Tidak perlu kartu kredit
-                    </span>
-                    <span class="flex items-center gap-1.5">
-                        <Check class="size-4" style="color: #8b5cf6" />
-                        AI drafting included
-                    </span>
+                    <span class="flex items-center gap-1.5"
+                        ><Check
+                            class="size-3.5 sm:size-4"
+                            style="color: #8b5cf6"
+                        />Gratis selamanya</span
+                    >
+                    <span class="flex items-center gap-1.5"
+                        ><Check
+                            class="size-3.5 sm:size-4"
+                            style="color: #8b5cf6"
+                        />Tanpa kartu kredit</span
+                    >
+                    <span class="flex items-center gap-1.5"
+                        ><Check
+                            class="size-3.5 sm:size-4"
+                            style="color: #8b5cf6"
+                        />AI drafting included</span
+                    >
                 </div>
             </div>
 
-            <!-- Hero mockup card — CSS-only email preview -->
-            <div class="relative mx-auto mt-20 w-full max-w-3xl px-4">
+            <!-- Hero mockup — hidden on mobile, visible md+ -->
+            <div
+                class="relative mx-auto mt-12 hidden w-full max-w-3xl px-4 md:mt-20 md:block"
+            >
                 <div
                     class="overflow-hidden rounded-2xl"
                     style="
@@ -214,7 +283,7 @@ const steps = [
                             0 0 0 1px rgba(0, 0, 0, 0.04);
                     "
                 >
-                    <!-- Mock email app chrome -->
+                    <!-- Browser chrome -->
                     <div
                         class="flex items-center gap-2 border-b px-5 py-3.5"
                         style="
@@ -232,12 +301,10 @@ const steps = [
                             mail.google.com
                         </div>
                     </div>
-
-                    <!-- Email content preview -->
+                    <!-- Email body -->
                     <div class="flex">
-                        <!-- Sidebar -->
                         <div
-                            class="hidden w-48 shrink-0 border-r p-4 md:block"
+                            class="w-48 shrink-0 border-r p-4"
                             style="
                                 background: rgba(255, 255, 255, 0.5);
                                 border-color: rgba(0, 0, 0, 0.06);
@@ -279,10 +346,7 @@ const steps = [
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Email body -->
                         <div class="flex-1 p-6">
-                            <!-- Email header -->
                             <div
                                 class="mb-5 border-b pb-4"
                                 style="border-color: rgba(0, 0, 0, 0.06)"
@@ -306,16 +370,9 @@ const steps = [
                                         class="h-2.5 w-32 rounded-full"
                                         style="background: rgba(0, 0, 0, 0.08)"
                                     ></div>
-                                    <div
-                                        class="ml-auto h-2 w-16 rounded-full"
-                                        style="background: rgba(0, 0, 0, 0.05)"
-                                    ></div>
                                 </div>
                             </div>
-
-                            <!-- Email HTML template visualization -->
                             <div class="space-y-3">
-                                <!-- Header block -->
                                 <div
                                     class="rounded-xl p-4"
                                     style="
@@ -339,12 +396,7 @@ const steps = [
                                             ></div>
                                         </div>
                                     </div>
-                                    <div
-                                        class="h-1.5 w-full rounded-full bg-white/20"
-                                    ></div>
                                 </div>
-
-                                <!-- Content blocks -->
                                 <div
                                     class="space-y-2 rounded-xl bg-white p-4"
                                     style="
@@ -363,17 +415,7 @@ const steps = [
                                         class="h-2 w-5/6 rounded-full"
                                         style="background: rgba(0, 0, 0, 0.06)"
                                     ></div>
-                                    <div
-                                        class="h-2 w-full rounded-full"
-                                        style="background: rgba(0, 0, 0, 0.06)"
-                                    ></div>
-                                    <div
-                                        class="h-2 w-2/3 rounded-full"
-                                        style="background: rgba(0, 0, 0, 0.06)"
-                                    ></div>
                                 </div>
-
-                                <!-- Skills chips row -->
                                 <div class="flex flex-wrap gap-2">
                                     <span
                                         v-for="(chip, i) in [
@@ -388,8 +430,6 @@ const steps = [
                                         >{{ chip }}</span
                                     >
                                 </div>
-
-                                <!-- CTA button block -->
                                 <div class="flex justify-center pt-1">
                                     <div
                                         class="rounded-lg px-8 py-2.5"
@@ -404,8 +444,6 @@ const steps = [
                         </div>
                     </div>
                 </div>
-
-                <!-- Bottom fade -->
                 <div
                     class="pointer-events-none absolute inset-x-0 bottom-0 h-24 rounded-b-2xl"
                     style="
@@ -420,13 +458,20 @@ const steps = [
         </section>
 
         <!-- LOGO STRIP -->
-        <section class="py-16">
-            <div class="mx-auto max-w-6xl px-6">
-                <div class="flex flex-wrap items-center justify-center gap-8">
-                    <p class="text-sm font-medium" style="color: #bbb">
+        <section class="py-10 sm:py-16">
+            <div class="mx-auto max-w-6xl px-4 sm:px-6">
+                <div
+                    class="flex flex-wrap items-center justify-center gap-4 sm:gap-8"
+                >
+                    <p
+                        class="w-full text-center text-xs font-medium sm:w-auto sm:text-sm"
+                        style="color: #bbb"
+                    >
                         Dipakai oleh job seekers di
                     </p>
-                    <div class="flex flex-wrap items-center gap-6">
+                    <div
+                        class="flex flex-wrap items-center justify-center gap-4 sm:gap-6"
+                    >
                         <span
                             v-for="brand in [
                                 'Tokopedia',
@@ -436,7 +481,7 @@ const steps = [
                                 'Grab',
                             ]"
                             :key="brand"
-                            class="text-sm font-semibold"
+                            class="text-xs font-semibold sm:text-sm"
                             style="color: #ccc"
                             >{{ brand }}</span
                         >
@@ -445,35 +490,31 @@ const steps = [
             </div>
         </section>
 
-        <!-- HOW IT WORKS — yellow accent -->
-        <section class="px-6 py-28">
+        <!-- HOW IT WORKS — yellow -->
+        <section class="px-4 py-16 sm:px-6 sm:py-24 lg:py-28">
             <div class="mx-auto max-w-6xl">
-                <!-- Section label -->
-                <div class="mb-6 flex items-center">
+                <div class="mb-5 flex items-center sm:mb-6">
                     <span
-                        class="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-semibold"
+                        class="inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold sm:px-4 sm:text-sm"
                         style="
                             background: rgba(245, 158, 11, 0.12);
                             color: #f59e0b;
                         "
                     >
-                        <Zap class="mr-1.5 size-3.5" />
-                        Cara kerja
+                        <Zap class="mr-1.5 size-3 sm:size-3.5" />Cara kerja
                     </span>
                 </div>
-
                 <h2
-                    class="mb-16 text-5xl leading-tight font-black tracking-tight text-gray-900 md:text-6xl"
+                    class="mb-10 text-3xl leading-tight font-black tracking-tight text-gray-900 sm:mb-16 sm:text-4xl md:text-5xl lg:text-6xl"
                 >
-                    Dari CV ke email cantik,<br />
+                    Dari CV ke email cantik,<br class="hidden sm:block" />
                     dalam 3 menit.
                 </h2>
-
-                <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
                     <div
                         v-for="step in steps"
                         :key="step.num"
-                        class="group relative overflow-hidden rounded-2xl p-7 transition-transform duration-300 hover:-translate-y-1"
+                        class="group relative overflow-hidden rounded-2xl p-6 transition-transform duration-300 hover:-translate-y-1 sm:p-7"
                         style="
                             background: rgba(255, 255, 255, 0.65);
                             backdrop-filter: blur(16px);
@@ -481,27 +522,25 @@ const steps = [
                             box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
                         "
                     >
-                        <!-- Step number -->
                         <div
-                            class="mb-4 text-6xl leading-none font-black select-none"
+                            class="mb-3 text-5xl leading-none font-black select-none sm:mb-4 sm:text-6xl"
                             style="color: rgba(245, 158, 11, 0.2)"
                         >
                             {{ step.num }}
                         </div>
-
-                        <!-- Icon -->
                         <div
-                            class="mb-4 inline-flex size-11 items-center justify-center rounded-xl"
+                            class="mb-3 inline-flex size-10 items-center justify-center rounded-xl sm:mb-4 sm:size-11"
                             style="background: rgba(245, 158, 11, 0.12)"
                         >
                             <component
                                 :is="step.icon"
-                                class="size-5"
+                                class="size-4 sm:size-5"
                                 style="color: #f59e0b"
                             />
                         </div>
-
-                        <h3 class="mb-2 text-base font-bold text-gray-900">
+                        <h3
+                            class="mb-2 text-sm font-bold text-gray-900 sm:text-base"
+                        >
                             {{ step.title }}
                         </h3>
                         <p class="text-sm leading-relaxed" style="color: #888">
@@ -509,8 +548,7 @@ const steps = [
                         </p>
                     </div>
                 </div>
-
-                <div class="mt-12">
+                <div class="mt-8 sm:mt-12">
                     <Link
                         href="/tutorial"
                         class="inline-flex items-center gap-2 text-sm font-semibold transition-opacity duration-200 hover:opacity-70"
@@ -522,37 +560,36 @@ const steps = [
             </div>
         </section>
 
-        <!-- FEATURES GRID — blue accent, bento-style -->
+        <!-- FEATURES GRID — blue, bento -->
         <section
-            class="px-6 py-28"
+            class="px-4 py-16 sm:px-6 sm:py-24 lg:py-28"
             style="background: rgba(255, 255, 255, 0.4)"
         >
             <div class="mx-auto max-w-6xl">
-                <!-- Section label -->
-                <div class="mb-6 flex items-center">
+                <div class="mb-5 flex items-center sm:mb-6">
                     <span
-                        class="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-semibold"
+                        class="inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold sm:px-4 sm:text-sm"
                         style="
                             background: rgba(59, 130, 246, 0.1);
                             color: #3b82f6;
                         "
                     >
-                        <Sparkles class="mr-1.5 size-3.5" />
-                        Fitur
+                        <Sparkles class="mr-1.5 size-3 sm:size-3.5" />Fitur
                     </span>
                 </div>
-
                 <h2
-                    class="mb-14 text-5xl font-black tracking-tight text-gray-900 md:text-6xl"
+                    class="mb-10 text-3xl font-black tracking-tight text-gray-900 sm:mb-14 sm:text-4xl md:text-5xl lg:text-6xl"
                 >
                     Semua yang kamu butuhkan
                 </h2>
 
-                <!-- Bento grid -->
-                <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                    <!-- AI Draft — spans 2 cols -->
+                <!-- Mobile: single col stacked -->
+                <div
+                    class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+                >
+                    <!-- AI Draft -->
                     <div
-                        class="col-span-2 overflow-hidden rounded-2xl p-8 transition-transform duration-300 hover:-translate-y-1"
+                        class="overflow-hidden rounded-2xl p-6 transition-transform duration-300 hover:-translate-y-1 sm:col-span-2 sm:p-8"
                         style="
                             background: rgba(255, 255, 255, 0.65);
                             backdrop-filter: blur(16px);
@@ -561,12 +598,17 @@ const steps = [
                         "
                     >
                         <div
-                            class="mb-5 inline-flex size-12 items-center justify-center rounded-xl"
+                            class="mb-4 inline-flex size-11 items-center justify-center rounded-xl sm:mb-5 sm:size-12"
                             style="background: rgba(59, 130, 246, 0.12)"
                         >
-                            <Bot class="size-6" style="color: #3b82f6" />
+                            <Bot
+                                class="size-5 sm:size-6"
+                                style="color: #3b82f6"
+                            />
                         </div>
-                        <h3 class="mb-2 text-xl font-bold text-gray-900">
+                        <h3
+                            class="mb-2 text-lg font-bold text-gray-900 sm:text-xl"
+                        >
                             AI Draft dari job posting
                         </h3>
                         <p class="text-sm leading-relaxed" style="color: #888">
@@ -576,9 +618,9 @@ const steps = [
                         </p>
                     </div>
 
-                    <!-- Gmail preview — spans 2 rows -->
+                    <!-- Gmail preview -->
                     <div
-                        class="col-span-2 row-span-2 overflow-hidden rounded-2xl p-8 transition-transform duration-300 hover:-translate-y-1 lg:col-span-1"
+                        class="overflow-hidden rounded-2xl p-6 transition-transform duration-300 hover:-translate-y-1 sm:col-span-2 sm:p-8 lg:col-span-1 lg:row-span-2"
                         style="
                             background: rgba(255, 255, 255, 0.65);
                             backdrop-filter: blur(16px);
@@ -587,22 +629,26 @@ const steps = [
                         "
                     >
                         <div
-                            class="mb-5 inline-flex size-12 items-center justify-center rounded-xl"
+                            class="mb-4 inline-flex size-11 items-center justify-center rounded-xl sm:mb-5 sm:size-12"
                             style="background: rgba(16, 185, 129, 0.12)"
                         >
-                            <Eye class="size-6" style="color: #10b981" />
+                            <Eye
+                                class="size-5 sm:size-6"
+                                style="color: #10b981"
+                            />
                         </div>
-                        <h3 class="mb-2 text-xl font-bold text-gray-900">
+                        <h3
+                            class="mb-2 text-lg font-bold text-gray-900 sm:text-xl"
+                        >
                             Preview persis kayak Gmail
                         </h3>
                         <p
-                            class="mb-6 text-sm leading-relaxed"
+                            class="mb-4 text-sm leading-relaxed sm:mb-6"
                             style="color: #888"
                         >
                             Renderer real-time yang tunjukkan email-mu persis
                             seperti recruiter lihat — desktop dan mobile.
                         </p>
-                        <!-- Mini preview mockup -->
                         <div
                             class="overflow-hidden rounded-xl p-4"
                             style="
@@ -610,12 +656,6 @@ const steps = [
                                 border: 1px solid rgba(16, 185, 129, 0.15);
                             "
                         >
-                            <div class="mb-2 flex items-center gap-1.5">
-                                <div
-                                    class="h-2 w-24 rounded-full"
-                                    style="background: rgba(16, 185, 129, 0.3)"
-                                ></div>
-                            </div>
                             <div class="space-y-1.5">
                                 <div
                                     class="h-1.5 w-full rounded-full"
@@ -635,7 +675,7 @@ const steps = [
 
                     <!-- Mobile toggle -->
                     <div
-                        class="col-span-2 overflow-hidden rounded-2xl p-7 transition-transform duration-300 hover:-translate-y-1 lg:col-span-1"
+                        class="overflow-hidden rounded-2xl p-6 transition-transform duration-300 hover:-translate-y-1 sm:p-7 lg:col-span-1"
                         style="
                             background: rgba(255, 255, 255, 0.65);
                             backdrop-filter: blur(16px);
@@ -644,12 +684,17 @@ const steps = [
                         "
                     >
                         <div
-                            class="mb-4 inline-flex size-11 items-center justify-center rounded-xl"
+                            class="mb-3 inline-flex size-10 items-center justify-center rounded-xl sm:mb-4 sm:size-11"
                             style="background: rgba(139, 92, 246, 0.12)"
                         >
-                            <Smartphone class="size-5" style="color: #8b5cf6" />
+                            <Smartphone
+                                class="size-4 sm:size-5"
+                                style="color: #8b5cf6"
+                            />
                         </div>
-                        <h3 class="mb-1.5 text-base font-bold text-gray-900">
+                        <h3
+                            class="mb-1.5 text-sm font-bold text-gray-900 sm:text-base"
+                        >
                             Desktop & mobile toggle
                         </h3>
                         <p class="text-sm leading-relaxed" style="color: #888">
@@ -659,7 +704,7 @@ const steps = [
 
                     <!-- Template -->
                     <div
-                        class="col-span-2 overflow-hidden rounded-2xl p-7 transition-transform duration-300 hover:-translate-y-1 lg:col-span-1"
+                        class="overflow-hidden rounded-2xl p-6 transition-transform duration-300 hover:-translate-y-1 sm:p-7 lg:col-span-1"
                         style="
                             background: rgba(255, 255, 255, 0.65);
                             backdrop-filter: blur(16px);
@@ -668,15 +713,17 @@ const steps = [
                         "
                     >
                         <div
-                            class="mb-4 inline-flex size-11 items-center justify-center rounded-xl"
+                            class="mb-3 inline-flex size-10 items-center justify-center rounded-xl sm:mb-4 sm:size-11"
                             style="background: rgba(245, 158, 11, 0.12)"
                         >
                             <LayoutTemplate
-                                class="size-5"
+                                class="size-4 sm:size-5"
                                 style="color: #f59e0b"
                             />
                         </div>
-                        <h3 class="mb-1.5 text-base font-bold text-gray-900">
+                        <h3
+                            class="mb-1.5 text-sm font-bold text-gray-900 sm:text-base"
+                        >
                             Template elegan
                         </h3>
                         <p class="text-sm leading-relaxed" style="color: #888">
@@ -685,9 +732,9 @@ const steps = [
                         </p>
                     </div>
 
-                    <!-- Send from Gmail — spans 2 cols -->
+                    <!-- Send from Gmail -->
                     <div
-                        class="col-span-2 overflow-hidden rounded-2xl p-8 transition-transform duration-300 hover:-translate-y-1"
+                        class="overflow-hidden rounded-2xl p-6 transition-transform duration-300 hover:-translate-y-1 sm:col-span-2 sm:p-8"
                         style="
                             background: rgba(255, 255, 255, 0.65);
                             backdrop-filter: blur(16px);
@@ -696,12 +743,17 @@ const steps = [
                         "
                     >
                         <div
-                            class="mb-5 inline-flex size-12 items-center justify-center rounded-xl"
+                            class="mb-4 inline-flex size-11 items-center justify-center rounded-xl sm:mb-5 sm:size-12"
                             style="background: rgba(236, 72, 153, 0.12)"
                         >
-                            <Lock class="size-6" style="color: #ec4899" />
+                            <Lock
+                                class="size-5 sm:size-6"
+                                style="color: #ec4899"
+                            />
                         </div>
-                        <h3 class="mb-2 text-xl font-bold text-gray-900">
+                        <h3
+                            class="mb-2 text-lg font-bold text-gray-900 sm:text-xl"
+                        >
                             Kirim dari Gmail kamu sendiri
                         </h3>
                         <p class="text-sm leading-relaxed" style="color: #888">
@@ -713,7 +765,7 @@ const steps = [
 
                     <!-- Credits -->
                     <div
-                        class="col-span-2 overflow-hidden rounded-2xl p-7 transition-transform duration-300 hover:-translate-y-1"
+                        class="overflow-hidden rounded-2xl p-6 transition-transform duration-300 hover:-translate-y-1 sm:col-span-2 sm:p-7"
                         style="
                             background: rgba(255, 255, 255, 0.65);
                             backdrop-filter: blur(16px);
@@ -722,12 +774,17 @@ const steps = [
                         "
                     >
                         <div
-                            class="mb-4 inline-flex size-11 items-center justify-center rounded-xl"
+                            class="mb-3 inline-flex size-10 items-center justify-center rounded-xl sm:mb-4 sm:size-11"
                             style="background: rgba(59, 130, 246, 0.12)"
                         >
-                            <CreditCard class="size-5" style="color: #3b82f6" />
+                            <CreditCard
+                                class="size-4 sm:size-5"
+                                style="color: #3b82f6"
+                            />
                         </div>
-                        <h3 class="mb-1.5 text-base font-bold text-gray-900">
+                        <h3
+                            class="mb-1.5 text-sm font-bold text-gray-900 sm:text-base"
+                        >
                             Sistem kredit transparan
                         </h3>
                         <p class="text-sm leading-relaxed" style="color: #888">
@@ -738,24 +795,25 @@ const steps = [
             </div>
         </section>
 
-        <!-- WHY GMAIL — green accent -->
-        <section class="px-6 py-28" style="background: #ecece6">
+        <!-- WHY GMAIL — green -->
+        <section
+            class="px-4 py-16 sm:px-6 sm:py-24 lg:py-28"
+            style="background: #ecece6"
+        >
             <div class="mx-auto max-w-6xl">
-                <div class="mb-6 flex items-center">
+                <div class="mb-5 flex items-center sm:mb-6">
                     <span
-                        class="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-semibold"
+                        class="inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold sm:px-4 sm:text-sm"
                         style="
                             background: rgba(16, 185, 129, 0.12);
                             color: #10b981;
                         "
                     >
-                        <Mail class="mr-1.5 size-3.5" />
-                        Kenapa Gmail
+                        <Mail class="mr-1.5 size-3 sm:size-3.5" />Kenapa Gmail
                     </span>
                 </div>
-
                 <div
-                    class="max-w-3xl rounded-2xl p-10"
+                    class="max-w-3xl rounded-2xl p-6 sm:p-10"
                     style="
                         border-left: 4px solid #10b981;
                         background: rgba(255, 255, 255, 0.5);
@@ -763,13 +821,16 @@ const steps = [
                     "
                 >
                     <p
-                        class="mb-6 text-2xl leading-snug font-bold text-gray-900 md:text-3xl"
+                        class="mb-4 text-xl leading-snug font-bold text-gray-900 sm:mb-6 sm:text-2xl md:text-3xl"
                     >
                         "Lamaran yang dikirim dari server orang lain sering
                         masuk spam. Kalau dikirim dari Gmail-mu sendiri,
                         recruiter balas langsung ke kamu — bukan ke kita."
                     </p>
-                    <p class="text-base leading-relaxed" style="color: #777">
+                    <p
+                        class="text-sm leading-relaxed sm:text-base"
+                        style="color: #777"
+                    >
                         Email dari server pihak ketiga membawa domain mereka di
                         header — dan sering dianggap spam filter. Dengan paste
                         HTML ke Gmail-mu sendiri, pesan datang dari alamatmu
@@ -780,32 +841,29 @@ const steps = [
             </div>
         </section>
 
-        <!-- TWO MODES — pink accent -->
-        <section class="px-6 py-28">
+        <!-- TWO MODES — pink -->
+        <section class="px-4 py-16 sm:px-6 sm:py-24 lg:py-28">
             <div class="mx-auto max-w-6xl">
-                <div class="mb-6 flex items-center">
+                <div class="mb-5 flex items-center sm:mb-6">
                     <span
-                        class="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-semibold"
+                        class="inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold sm:px-4 sm:text-sm"
                         style="
                             background: rgba(236, 72, 153, 0.1);
                             color: #ec4899;
                         "
                     >
-                        <Sparkles class="mr-1.5 size-3.5" />
-                        Dua mode
+                        <Sparkles class="mr-1.5 size-3 sm:size-3.5" />Dua mode
                     </span>
                 </div>
-
                 <h2
-                    class="mb-14 text-5xl font-black tracking-tight text-gray-900 md:text-6xl"
+                    class="mb-10 text-3xl font-black tracking-tight text-gray-900 sm:mb-14 sm:text-4xl md:text-5xl lg:text-6xl"
                 >
                     Terserah kamu.
                 </h2>
-
-                <div class="grid gap-6 sm:grid-cols-2">
-                    <!-- Manual mode -->
+                <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
+                    <!-- Manual -->
                     <div
-                        class="group overflow-hidden rounded-2xl p-10 transition-transform duration-300 hover:-translate-y-1"
+                        class="overflow-hidden rounded-2xl p-7 transition-transform duration-300 hover:-translate-y-1 sm:p-10"
                         style="
                             background: rgba(255, 255, 255, 0.65);
                             backdrop-filter: blur(16px);
@@ -814,24 +872,31 @@ const steps = [
                         "
                     >
                         <div
-                            class="mb-5 inline-flex size-12 items-center justify-center rounded-xl"
+                            class="mb-4 inline-flex size-11 items-center justify-center rounded-xl sm:mb-5 sm:size-12"
                             style="background: rgba(107, 114, 128, 0.1)"
                         >
-                            <PencilLine class="size-6" style="color: #6b7280" />
+                            <PencilLine
+                                class="size-5 sm:size-6"
+                                style="color: #6b7280"
+                            />
                         </div>
-                        <h3 class="mb-3 text-2xl font-black text-gray-900">
+                        <h3
+                            class="mb-2 text-xl font-black text-gray-900 sm:mb-3 sm:text-2xl"
+                        >
                             Manual mode
                         </h3>
-                        <p class="leading-relaxed" style="color: #888">
+                        <p
+                            class="text-sm leading-relaxed sm:text-base"
+                            style="color: #888"
+                        >
                             Setiap template terbagi jadi field-field sederhana.
                             Ketik kata-katamu dan email terbentuk langsung di
                             sebelahmu — full control di tanganmu.
                         </p>
                     </div>
-
-                    <!-- AI mode -->
+                    <!-- AI -->
                     <div
-                        class="group overflow-hidden rounded-2xl p-10 transition-transform duration-300 hover:-translate-y-1"
+                        class="overflow-hidden rounded-2xl p-7 transition-transform duration-300 hover:-translate-y-1 sm:p-10"
                         style="
                             background: rgba(255, 255, 255, 0.65);
                             backdrop-filter: blur(16px);
@@ -839,27 +904,33 @@ const steps = [
                             box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
                         "
                     >
-                        <div class="mb-5 flex items-center justify-between">
+                        <div
+                            class="mb-4 flex items-center justify-between sm:mb-5"
+                        >
                             <div
-                                class="inline-flex size-12 items-center justify-center rounded-xl"
+                                class="inline-flex size-11 items-center justify-center rounded-xl sm:size-12"
                                 style="background: rgba(236, 72, 153, 0.12)"
                             >
                                 <Sparkles
-                                    class="size-6"
+                                    class="size-5 sm:size-6"
                                     style="color: #ec4899"
                                 />
                             </div>
                             <span
                                 class="rounded-full px-3 py-1 text-xs font-bold text-white"
                                 style="background: #ec4899"
+                                >Populer ✨</span
                             >
-                                Populer ✨
-                            </span>
                         </div>
-                        <h3 class="mb-3 text-2xl font-black text-gray-900">
+                        <h3
+                            class="mb-2 text-xl font-black text-gray-900 sm:mb-3 sm:text-2xl"
+                        >
                             AI draft mode
                         </h3>
-                        <p class="leading-relaxed" style="color: #888">
+                        <p
+                            class="text-sm leading-relaxed sm:text-base"
+                            style="color: #888"
+                        >
                             Paste job posting, AI menulis tiap field berdasarkan
                             CV aslimu — lalu kamu edit setiap baris sebelum
                             dikirim. Cepat, relevan, masuk akal.
@@ -870,20 +941,26 @@ const steps = [
         </section>
 
         <!-- CTA BANNER -->
-        <section class="px-6 py-32" style="background: #0f0f0f">
+        <section
+            class="px-4 py-20 sm:px-6 sm:py-32"
+            style="background: #0f0f0f"
+        >
             <div class="mx-auto max-w-3xl text-center">
                 <h2
-                    class="mb-6 text-5xl leading-tight font-black text-white md:text-6xl"
+                    class="mb-4 text-3xl leading-tight font-black text-white sm:mb-6 sm:text-4xl md:text-5xl lg:text-6xl"
                 >
                     Siap bikin email lamaran yang beda?
                 </h2>
-                <p class="mb-10 text-lg" style="color: #666">
+                <p
+                    class="mb-8 text-base sm:mb-10 sm:text-lg"
+                    style="color: #666"
+                >
                     Gratis selamanya. Tidak perlu kartu kredit. Langsung dari
                     browser-mu.
                 </p>
                 <Link
                     :href="$page.props.auth.user ? dashboard() : register()"
-                    class="inline-flex items-center gap-2 rounded-xl px-8 py-4 text-base font-bold text-white transition-opacity duration-200 hover:opacity-90"
+                    class="inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-base font-bold text-white transition-opacity duration-200 hover:opacity-90 sm:px-8 sm:py-4"
                     style="background: #8b5cf6"
                 >
                     {{
@@ -898,14 +975,13 @@ const steps = [
 
         <!-- FOOTER -->
         <footer
-            class="border-t px-6 py-12"
+            class="border-t px-4 py-10 sm:px-6 sm:py-12"
             style="background: #0f0f0f; border-color: rgba(255, 255, 255, 0.06)"
         >
             <div class="mx-auto max-w-6xl">
                 <div
-                    class="mb-8 flex flex-col items-center justify-between gap-6 sm:flex-row"
+                    class="mb-6 flex flex-col items-center gap-6 sm:mb-8 sm:flex-row sm:justify-between"
                 >
-                    <!-- Logo -->
                     <div class="flex items-center gap-2">
                         <div
                             class="flex size-7 items-center justify-center rounded-lg"
@@ -917,9 +993,10 @@ const steps = [
                             >ApplyMail</span
                         >
                     </div>
-
-                    <!-- Links -->
-                    <div class="flex gap-6 text-sm" style="color: #555">
+                    <div
+                        class="flex gap-5 text-sm sm:gap-6"
+                        style="color: #555"
+                    >
                         <Link
                             href="/tutorial"
                             class="transition-colors duration-200 hover:text-white"
@@ -937,9 +1014,8 @@ const steps = [
                         >
                     </div>
                 </div>
-
                 <div
-                    class="border-t pt-8 text-center text-xs"
+                    class="border-t pt-6 text-center text-xs sm:pt-8"
                     style="border-color: rgba(255, 255, 255, 0.06); color: #444"
                 >
                     © 2025 ApplyMail. Sent from your Gmail.
