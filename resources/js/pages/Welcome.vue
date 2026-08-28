@@ -6,7 +6,6 @@ import {
     Check,
     CreditCard,
     Eye,
-    FileText,
     LayoutTemplate,
     Lock,
     Mail,
@@ -42,57 +41,6 @@ const steps = [
         icon: Mail,
         title: 'Copy & kirim',
         body: 'Paste ke Gmail-mu sendiri. Terkirim dari alamat aslimu. Balasan masuk langsung ke inbox kamu.',
-    },
-];
-
-const features = [
-    {
-        icon: Bot,
-        title: 'AI Draft dari job posting',
-        body: 'Paste lowongan, dapat draft grounded dari CV aslimu. Zero hallucination.',
-        color: '#3B82F6',
-        bgColor: 'rgba(59,130,246,0.12)',
-        span: 'col-span-2',
-    },
-    {
-        icon: Eye,
-        title: 'Preview persis kayak Gmail',
-        body: 'Renderer real-time, desktop & mobile. Kamu tahu persis apa yang recruiter lihat.',
-        color: '#10B981',
-        bgColor: 'rgba(16,185,129,0.12)',
-        span: 'row-span-2',
-    },
-    {
-        icon: Smartphone,
-        title: 'Desktop & mobile toggle',
-        body: 'Cek tampilan di kedua mode sebelum copy.',
-        color: '#8B5CF6',
-        bgColor: 'rgba(139,92,246,0.12)',
-        span: '',
-    },
-    {
-        icon: LayoutTemplate,
-        title: 'Template elegan',
-        body: 'HTML email yang survive Gmail rendering di setiap device.',
-        color: '#F59E0B',
-        bgColor: 'rgba(245,158,11,0.12)',
-        span: '',
-    },
-    {
-        icon: Lock,
-        title: 'Kirim dari Gmail kamu sendiri',
-        body: 'Lamaran terkirim dari alamat aslimu — bukan server kami. Zero spam risk, rekruter balas langsung ke kamu.',
-        color: '#EC4899',
-        bgColor: 'rgba(236,72,153,0.12)',
-        span: 'col-span-2',
-    },
-    {
-        icon: CreditCard,
-        title: 'Sistem kredit transparan',
-        body: 'Bayar sesuai pemakaian. Tidak ada biaya tersembunyi.',
-        color: '#3B82F6',
-        bgColor: 'rgba(59,130,246,0.12)',
-        span: '',
     },
 ];
 </script>
