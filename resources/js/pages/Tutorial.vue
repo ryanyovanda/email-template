@@ -37,7 +37,7 @@ const steps = [
         title: 'Pick a template',
         time: '1 min',
         body: 'Browse the template gallery. Each design is table-based with inline styles — proven to render correctly in Gmail, Outlook, and Apple Mail on desktop and mobile.',
-        tip: 'Pick the template that matches the company\'s vibe. Startup? Go modern. Corp? Go clean.',
+        tip: "Pick the template that matches the company's vibe. Startup? Go modern. Corp? Go clean.",
         screenshot: true,
     },
     {
@@ -46,7 +46,7 @@ const steps = [
         title: 'Fill it or let AI draft',
         time: '3-10 min',
         body: 'Option A: Fill each field manually and watch the email build in real time beside you. Option B: Paste the job posting URL or text, and the AI generates a draft using only what your CV actually says.',
-        tip: 'Always read and edit every AI-generated line before sending. It\'s a draft, not a final.',
+        tip: "Always read and edit every AI-generated line before sending. It's a draft, not a final.",
         screenshot: true,
     },
     {
@@ -54,7 +54,7 @@ const steps = [
         icon: Mail,
         title: 'Preview in Gmail',
         time: '1 min',
-        body: 'Hit preview to see the exact message a recruiter would open — rendered in Gmail\'s engine, on desktop and mobile breakpoints. Spot layout issues before they reach anyone.',
+        body: "Hit preview to see the exact message a recruiter would open — rendered in Gmail's engine, on desktop and mobile breakpoints. Spot layout issues before they reach anyone.",
         tip: 'Check both dark mode and light mode if you can.',
         screenshot: true,
     },
@@ -92,99 +92,157 @@ const faqs = [
 <template>
     <Head title="Tutorial — ApplyMail" />
 
-    <div class="min-h-screen bg-[#0f0f0f] text-white font-sans">
-
+    <div class="min-h-screen bg-[#0f0f0f] font-sans text-white">
         <!-- NAV -->
-        <header class="fixed top-0 left-0 right-0 z-50 bg-[#0f0f0f]/90 backdrop-blur-sm border-b border-white/5">
-            <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-                <Link href="/" class="flex items-center gap-2 hover:opacity-80 transition-opacity duration-200">
+        <header
+            class="fixed top-0 right-0 left-0 z-50 border-b border-white/5 bg-[#0f0f0f]/90 backdrop-blur-sm"
+        >
+            <div
+                class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4"
+            >
+                <Link
+                    href="/"
+                    class="flex items-center gap-2 transition-opacity duration-200 hover:opacity-80"
+                >
                     <Mail class="size-5 text-[#FF5C28]" />
-                    <span class="text-base font-bold tracking-tight">ApplyMail</span>
+                    <span class="text-base font-bold tracking-tight"
+                        >ApplyMail</span
+                    >
                 </Link>
 
                 <nav class="flex items-center gap-1 text-sm">
-                    <span class="px-4 py-2 text-[#FF5C28] font-semibold">Tutorial</span>
+                    <span class="px-4 py-2 font-semibold text-[#FF5C28]"
+                        >Tutorial</span
+                    >
                     <Link
                         v-if="$page.props.auth.user"
                         href="/dashboard"
-                        class="ml-2 px-5 py-2 rounded-md bg-[#FF5C28] text-white font-bold hover:bg-[#e04d1f] transition-colors duration-200"
-                    >Dashboard</Link>
+                        class="ml-2 rounded-md bg-[#FF5C28] px-5 py-2 font-bold text-white transition-colors duration-200 hover:bg-[#e04d1f]"
+                        >Dashboard</Link
+                    >
                     <template v-else>
                         <Link
                             :href="login()"
-                            class="px-4 py-2 text-white/60 hover:text-white transition-colors duration-200"
-                        >Log in</Link>
+                            class="px-4 py-2 text-white/60 transition-colors duration-200 hover:text-white"
+                            >Log in</Link
+                        >
                         <Link
                             :href="register()"
-                            class="ml-2 px-5 py-2 rounded-md bg-[#FF5C28] text-white font-bold hover:bg-[#e04d1f] transition-colors duration-200"
-                        >Get started</Link>
+                            class="ml-2 rounded-md bg-[#FF5C28] px-5 py-2 font-bold text-white transition-colors duration-200 hover:bg-[#e04d1f]"
+                            >Get started</Link
+                        >
                     </template>
                 </nav>
             </div>
         </header>
 
         <!-- HERO -->
-        <section class="pt-40 pb-24 px-6 bg-[#0f0f0f]">
+        <section class="bg-[#0f0f0f] px-6 pt-40 pb-24">
             <div class="mx-auto max-w-6xl">
-                <div class="flex items-center gap-2 text-[#FF5C28] text-sm font-bold uppercase tracking-[0.2em] mb-6">
+                <div
+                    class="mb-6 flex items-center gap-2 text-sm font-bold tracking-[0.2em] text-[#FF5C28] uppercase"
+                >
                     <Link href="/" class="hover:underline">Home</Link>
                     <ChevronRight class="size-3" />
                     <span>Tutorial</span>
                 </div>
-                <h1 class="text-6xl md:text-8xl font-black leading-none tracking-tight mb-6 max-w-4xl">
+                <h1
+                    class="mb-6 max-w-4xl text-6xl leading-none font-black tracking-tight md:text-8xl"
+                >
                     From zero to sent.<br />
                     <span class="text-[#FF5C28]">6 steps.</span>
                 </h1>
-                <p class="text-lg text-white/50 max-w-xl leading-relaxed">
-                    Install the extension, build your profile, pick a template, let AI draft, preview, copy & send. Takes under 15 minutes the first time.
+                <p class="max-w-xl text-lg leading-relaxed text-white/50">
+                    Install the extension, build your profile, pick a template,
+                    let AI draft, preview, copy & send. Takes under 15 minutes
+                    the first time.
                 </p>
             </div>
         </section>
 
         <!-- STEPS -->
-        <section class="bg-white text-[#0f0f0f] py-24 px-6">
+        <section class="bg-white px-6 py-24 text-[#0f0f0f]">
             <div class="mx-auto max-w-6xl">
-
                 <div
                     v-for="(step, idx) in steps"
                     :key="step.num"
                     class="group"
-                    :class="idx < steps.length - 1 ? 'mb-24 pb-24 border-b border-[#0f0f0f]/8' : ''"
+                    :class="
+                        idx < steps.length - 1
+                            ? 'mb-24 border-b border-[#0f0f0f]/8 pb-24'
+                            : ''
+                    "
                 >
-                    <div class="grid gap-12 lg:grid-cols-2 items-start">
+                    <div class="grid items-start gap-12 lg:grid-cols-2">
                         <!-- Left: content -->
                         <div>
-                            <div class="text-8xl font-black text-[#0f0f0f]/6 leading-none mb-4 select-none group-hover:text-[#FF5C28]/15 transition-colors duration-300">
+                            <div
+                                class="mb-4 text-8xl leading-none font-black text-[#0f0f0f]/6 transition-colors duration-300 select-none group-hover:text-[#FF5C28]/15"
+                            >
                                 {{ step.num }}
                             </div>
-                            <div class="flex items-center gap-2 mb-4">
-                                <component :is="step.icon" class="size-5 text-[#FF5C28]" />
-                                <span class="text-xs font-bold uppercase tracking-wider text-[#0f0f0f]/30">{{ step.time }}</span>
+                            <div class="mb-4 flex items-center gap-2">
+                                <component
+                                    :is="step.icon"
+                                    class="size-5 text-[#FF5C28]"
+                                />
+                                <span
+                                    class="text-xs font-bold tracking-wider text-[#0f0f0f]/30 uppercase"
+                                    >{{ step.time }}</span
+                                >
                             </div>
-                            <h2 class="text-3xl font-black mb-4">{{ step.title }}</h2>
-                            <p class="text-[#0f0f0f]/60 leading-relaxed mb-6 text-base">{{ step.body }}</p>
-                            <div class="flex items-start gap-3 bg-[#FF5C28]/5 border border-[#FF5C28]/20 rounded-md p-4">
-                                <span class="text-[#FF5C28] font-black text-xs uppercase tracking-wider shrink-0 mt-0.5">Tip</span>
-                                <p class="text-sm text-[#0f0f0f]/60 leading-relaxed">{{ step.tip }}</p>
+                            <h2 class="mb-4 text-3xl font-black">
+                                {{ step.title }}
+                            </h2>
+                            <p
+                                class="mb-6 text-base leading-relaxed text-[#0f0f0f]/60"
+                            >
+                                {{ step.body }}
+                            </p>
+                            <div
+                                class="flex items-start gap-3 rounded-md border border-[#FF5C28]/20 bg-[#FF5C28]/5 p-4"
+                            >
+                                <span
+                                    class="mt-0.5 shrink-0 text-xs font-black tracking-wider text-[#FF5C28] uppercase"
+                                    >Tip</span
+                                >
+                                <p
+                                    class="text-sm leading-relaxed text-[#0f0f0f]/60"
+                                >
+                                    {{ step.tip }}
+                                </p>
                             </div>
                         </div>
 
                         <!-- Right: screenshot placeholder -->
-                        <div class="aspect-video bg-[#0f0f0f]/4 rounded-xl flex flex-col items-center justify-center gap-3 border border-[#0f0f0f]/8">
-                            <component :is="step.icon" class="size-8 text-[#0f0f0f]/20" />
-                            <span class="text-xs text-[#0f0f0f]/25 font-medium uppercase tracking-wider">Screenshot — Step {{ step.num }}</span>
+                        <div
+                            class="flex aspect-video flex-col items-center justify-center gap-3 rounded-xl border border-[#0f0f0f]/8 bg-[#0f0f0f]/4"
+                        >
+                            <component
+                                :is="step.icon"
+                                class="size-8 text-[#0f0f0f]/20"
+                            />
+                            <span
+                                class="text-xs font-medium tracking-wider text-[#0f0f0f]/25 uppercase"
+                                >Screenshot — Step {{ step.num }}</span
+                            >
                         </div>
                     </div>
                 </div>
-
             </div>
         </section>
 
         <!-- FAQ -->
-        <section class="bg-[#0f0f0f] py-24 px-6">
+        <section class="bg-[#0f0f0f] px-6 py-24">
             <div class="mx-auto max-w-6xl">
-                <p class="text-[#FF5C28] text-sm font-bold uppercase tracking-[0.2em] mb-4">FAQ</p>
-                <h2 class="text-5xl font-black tracking-tight mb-16">Ada pertanyaan?</h2>
+                <p
+                    class="mb-4 text-sm font-bold tracking-[0.2em] text-[#FF5C28] uppercase"
+                >
+                    FAQ
+                </p>
+                <h2 class="mb-16 text-5xl font-black tracking-tight">
+                    Ada pertanyaan?
+                </h2>
 
                 <div class="grid gap-8 sm:grid-cols-2">
                     <div
@@ -192,22 +250,28 @@ const faqs = [
                         :key="faq.q"
                         class="border-t border-white/10 pt-8"
                     >
-                        <h3 class="font-black text-lg mb-3">{{ faq.q }}</h3>
-                        <p class="text-white/40 leading-relaxed text-sm">{{ faq.a }}</p>
+                        <h3 class="mb-3 text-lg font-black">{{ faq.q }}</h3>
+                        <p class="text-sm leading-relaxed text-white/40">
+                            {{ faq.a }}
+                        </p>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- CTA -->
-        <section class="bg-[#FF5C28] py-20 px-6">
-            <div class="mx-auto max-w-6xl flex flex-col md:flex-row items-center justify-between gap-8">
-                <h2 class="text-4xl md:text-5xl font-black text-white leading-tight max-w-xl">
+        <section class="bg-[#FF5C28] px-6 py-20">
+            <div
+                class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-8 md:flex-row"
+            >
+                <h2
+                    class="max-w-xl text-4xl leading-tight font-black text-white md:text-5xl"
+                >
                     Siap coba? Gratis, dan makan waktu 15 menit.
                 </h2>
                 <Link
                     :href="register()"
-                    class="shrink-0 inline-flex items-center gap-2 px-8 py-4 bg-white text-[#FF5C28] font-black text-base rounded-md hover:bg-white/90 transition-colors duration-200 whitespace-nowrap"
+                    class="inline-flex shrink-0 items-center gap-2 rounded-md bg-white px-8 py-4 text-base font-black whitespace-nowrap text-[#FF5C28] transition-colors duration-200 hover:bg-white/90"
                 >
                     Mulai gratis sekarang
                     <ArrowRight class="size-4" />
@@ -216,20 +280,35 @@ const faqs = [
         </section>
 
         <!-- FOOTER -->
-        <footer class="bg-[#0f0f0f] border-t border-white/5 py-10 px-6">
-            <div class="mx-auto max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-4">
+        <footer class="border-t border-white/5 bg-[#0f0f0f] px-6 py-10">
+            <div
+                class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row"
+            >
                 <div class="flex items-center gap-2">
                     <Mail class="size-4 text-[#FF5C28]" />
-                    <span class="font-bold text-sm">ApplyMail</span>
+                    <span class="text-sm font-bold">ApplyMail</span>
                 </div>
-                <div class="flex gap-6 text-white/30 text-sm">
-                    <Link href="/" class="hover:text-white transition-colors duration-200">Home</Link>
-                    <Link href="/tutorial" class="hover:text-white transition-colors duration-200">Tutorial</Link>
-                    <Link :href="login()" class="hover:text-white transition-colors duration-200">Log in</Link>
+                <div class="flex gap-6 text-sm text-white/30">
+                    <Link
+                        href="/"
+                        class="transition-colors duration-200 hover:text-white"
+                        >Home</Link
+                    >
+                    <Link
+                        href="/tutorial"
+                        class="transition-colors duration-200 hover:text-white"
+                        >Tutorial</Link
+                    >
+                    <Link
+                        :href="login()"
+                        class="transition-colors duration-200 hover:text-white"
+                        >Log in</Link
+                    >
                 </div>
-                <p class="text-white/20 text-xs">© 2025 ApplyMail. Sent from your Gmail.</p>
+                <p class="text-xs text-white/20">
+                    © 2025 ApplyMail. Sent from your Gmail.
+                </p>
             </div>
         </footer>
-
     </div>
 </template>
