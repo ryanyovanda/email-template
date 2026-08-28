@@ -15,6 +15,7 @@ use App\Http\Controllers\UserTemplateController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
+Route::inertia('/tutorial', 'Tutorial')->name('tutorial');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
