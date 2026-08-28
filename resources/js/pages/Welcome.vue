@@ -49,7 +49,9 @@ const steps = [
 <template>
     <Head title="Job application emails that look like you meant it" />
 
-    <div class="min-h-screen bg-[#FDFDFC] text-[#1b1b18] dark:bg-[#0a0a0a] dark:text-[#EDEDEC]">
+    <div
+        class="min-h-screen bg-[#FDFDFC] text-[#1b1b18] dark:bg-[#0a0a0a] dark:text-[#EDEDEC]"
+    >
         <header
             class="mx-auto flex max-w-5xl items-center justify-between px-6 py-6"
         >
@@ -133,7 +135,9 @@ const steps = [
                     class="rounded-xl border border-[#e3e3e0] p-6 dark:border-[#3E3E3A]"
                 >
                     <Sparkles class="size-5" />
-                    <h2 class="mt-3 font-semibold">Or generate from the posting</h2>
+                    <h2 class="mt-3 font-semibold">
+                        Or generate from the posting
+                    </h2>
                     <p
                         class="mt-2 text-sm leading-relaxed text-[#706f6c] dark:text-[#A1A09A]"
                     >
@@ -150,7 +154,9 @@ const steps = [
                     How it works
                 </h2>
 
-                <div class="mt-8 grid gap-x-8 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
+                <div
+                    class="mt-8 grid gap-x-8 gap-y-8 sm:grid-cols-2 lg:grid-cols-3"
+                >
                     <div
                         v-for="(step, index) in steps"
                         :key="step.title"

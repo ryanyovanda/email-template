@@ -92,7 +92,7 @@ function onPhotoChange(event: Event): void {
 function onCvChange(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0] ?? null;
     form.cv = file;
-    cvName.value = file?.name ?? (props.profile?.cv_filename ?? null);
+    cvName.value = file?.name ?? props.profile?.cv_filename ?? null;
 }
 
 function submit(andContinue: boolean): void {
@@ -138,7 +138,7 @@ function submit(andContinue: boolean): void {
                 <div class="mt-5 flex items-start gap-5">
                     <div class="shrink-0 text-center">
                         <div
-                            class="bg-muted flex size-20 items-center justify-center overflow-hidden rounded-full border"
+                            class="flex size-20 items-center justify-center overflow-hidden rounded-full border bg-muted"
                         >
                             <img
                                 v-if="photoPreview"
@@ -148,11 +148,11 @@ function submit(andContinue: boolean): void {
                             />
                             <UserIcon
                                 v-else
-                                class="text-muted-foreground size-7"
+                                class="size-7 text-muted-foreground"
                             />
                         </div>
                         <label
-                            class="text-primary mt-2 inline-block cursor-pointer text-xs underline"
+                            class="mt-2 inline-block cursor-pointer text-xs text-primary underline"
                         >
                             {{ photoPreview ? 'Change' : 'Add photo' }}
                             <input
@@ -183,7 +183,7 @@ function submit(andContinue: boolean): void {
                                 v-model="form.headline"
                                 placeholder="Learning & Development Specialist"
                             />
-                            <p class="text-muted-foreground text-xs">
+                            <p class="text-xs text-muted-foreground">
                                 One line describing what you do. Some templates
                                 show it under your name.
                             </p>
@@ -253,26 +253,26 @@ function submit(andContinue: boolean): void {
                 <h2 class="flex items-center gap-2 text-sm font-semibold">
                     <FileText class="size-4" /> Your CV
                 </h2>
-                <p class="text-muted-foreground mt-1 text-sm">
+                <p class="mt-1 text-sm text-muted-foreground">
                     We read the text out of your CV so the AI can write from
                     your real experience. The file itself is stored so you can
                     attach it in Gmail.
                 </p>
 
                 <label
-                    class="hover:bg-accent/40 mt-4 flex cursor-pointer items-center gap-4 rounded-lg border border-dashed px-4 py-5 transition-colors"
+                    class="mt-4 flex cursor-pointer items-center gap-4 rounded-lg border border-dashed px-4 py-5 transition-colors hover:bg-accent/40"
                 >
-                    <Upload class="text-muted-foreground size-5 shrink-0" />
+                    <Upload class="size-5 shrink-0 text-muted-foreground" />
                     <div class="min-w-0 flex-1">
                         <div class="truncate text-sm font-medium">
                             {{ cvName ?? 'Choose a file' }}
                         </div>
-                        <div class="text-muted-foreground text-xs">
+                        <div class="text-xs text-muted-foreground">
                             {{ limits.cvMimes.join(', ').toUpperCase() }} up to
                             {{ Math.round(limits.cvMaxKb / 1024) }} MB
                         </div>
                     </div>
-                    <span class="text-primary text-xs underline">Browse</span>
+                    <span class="text-xs text-primary underline">Browse</span>
                     <input
                         type="file"
                         :accept="cvAccept"
@@ -318,7 +318,7 @@ function submit(andContinue: boolean): void {
                         class="font-mono text-xs"
                         placeholder="Upload a CV above to fill this automatically, or paste your CV text here."
                     />
-                    <p class="text-muted-foreground text-xs">
+                    <p class="text-xs text-muted-foreground">
                         Edit anything the parser got wrong. This text is what
                         the AI reads — nothing else from the file is used.
                     </p>

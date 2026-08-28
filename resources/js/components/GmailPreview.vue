@@ -30,7 +30,9 @@ const frameHeight = ref(560);
 
 let observer: ResizeObserver | null = null;
 
-const initial = computed(() => props.senderName.trim().charAt(0).toUpperCase() || '?');
+const initial = computed(
+    () => props.senderName.trim().charAt(0).toUpperCase() || '?',
+);
 
 const sentAt = computed(() =>
     new Date().toLocaleString(undefined, {
@@ -80,7 +82,10 @@ function onLoad(): void {
     }
 }
 
-watch(() => props.html, () => window.setTimeout(measure, 50));
+watch(
+    () => props.html,
+    () => window.setTimeout(measure, 50),
+);
 watch(device, () => window.setTimeout(measure, 50));
 
 onBeforeUnmount(() => observer?.disconnect());
@@ -93,14 +98,14 @@ onBeforeUnmount(() => observer?.disconnect());
                 <span class="text-sm font-medium">Gmail preview</span>
                 <span
                     v-if="loading"
-                    class="text-muted-foreground animate-pulse text-xs"
+                    class="animate-pulse text-xs text-muted-foreground"
                     >updating…</span
                 >
             </div>
 
-            <div class="bg-muted flex items-center gap-1 rounded-md p-1">
+            <div class="flex items-center gap-1 rounded-md bg-muted p-1">
                 <Button
-                    v-for="option in (['desktop', 'mobile'] as Device[])"
+                    v-for="option in ['desktop', 'mobile'] as Device[]"
                     :key="option"
                     type="button"
                     variant="ghost"
@@ -181,13 +186,18 @@ onBeforeUnmount(() => observer?.disconnect());
                 />
 
                 <!-- Attachment chip -->
-                <div v-if="attachment" class="border-t border-[#f1f3f4] px-5 py-4">
+                <div
+                    v-if="attachment"
+                    class="border-t border-[#f1f3f4] px-5 py-4"
+                >
                     <div class="text-xs text-[#5f6368]">One attachment</div>
                     <div
                         class="mt-2 inline-flex items-center gap-2 rounded-lg border border-[#dadce0] px-3 py-2"
                     >
                         <Paperclip class="size-4 text-[#5f6368]" />
-                        <span class="text-xs text-[#202124]">{{ attachment }}</span>
+                        <span class="text-xs text-[#202124]">{{
+                            attachment
+                        }}</span>
                     </div>
                 </div>
             </div>

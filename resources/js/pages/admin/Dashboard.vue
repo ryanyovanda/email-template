@@ -23,7 +23,12 @@ defineProps<{
     };
     abuseThreshold: number;
     heavyUsers: {
-        user: { id: number; name: string; email: string; banned_at: string | null } | null;
+        user: {
+            id: number;
+            name: string;
+            email: string;
+            banned_at: string | null;
+        } | null;
         generations: number;
         tokens: number;
     }[];
@@ -47,21 +52,23 @@ defineOptions({
 
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div class="rounded-xl border p-4">
-                <div class="text-muted-foreground text-xs">Registered users</div>
+                <div class="text-xs text-muted-foreground">
+                    Registered users
+                </div>
                 <div class="mt-1 text-2xl font-semibold">{{ stats.users }}</div>
-                <div class="text-muted-foreground mt-1 text-xs">
+                <div class="mt-1 text-xs text-muted-foreground">
                     +{{ stats.newUsersThisWeek }} this week ·
                     {{ stats.bannedUsers }} suspended
                 </div>
             </div>
             <div class="rounded-xl border p-4">
-                <div class="text-muted-foreground text-xs">Applications</div>
+                <div class="text-xs text-muted-foreground">Applications</div>
                 <div class="mt-1 text-2xl font-semibold">
                     {{ stats.applications }}
                 </div>
             </div>
             <div class="rounded-xl border p-4">
-                <div class="text-muted-foreground text-xs">AI runs today</div>
+                <div class="text-xs text-muted-foreground">AI runs today</div>
                 <div class="mt-1 text-2xl font-semibold">
                     {{ stats.generationsToday }}
                 </div>
@@ -77,13 +84,13 @@ defineOptions({
                 </div>
             </div>
             <div class="rounded-xl border p-4">
-                <div class="text-muted-foreground text-xs">
+                <div class="text-xs text-muted-foreground">
                     Tokens this month
                 </div>
                 <div class="mt-1 text-2xl font-semibold">
                     {{ stats.tokensThisMonth.toLocaleString() }}
                 </div>
-                <div class="text-muted-foreground mt-1 text-xs">
+                <div class="mt-1 text-xs text-muted-foreground">
                     over {{ stats.generationsThisMonth }} runs
                 </div>
             </div>
@@ -95,7 +102,7 @@ defineOptions({
                     <Users class="size-4" />
                     <span class="text-left">
                         <span class="block text-sm font-medium">Users</span>
-                        <span class="text-muted-foreground block text-xs"
+                        <span class="block text-xs text-muted-foreground"
                             >Review, limit and suspend accounts</span
                         >
                     </span>
@@ -106,7 +113,7 @@ defineOptions({
                     <LayoutTemplate class="size-4" />
                     <span class="text-left">
                         <span class="block text-sm font-medium">Templates</span>
-                        <span class="text-muted-foreground block text-xs">
+                        <span class="block text-xs text-muted-foreground">
                             {{ stats.activeTemplates }} of
                             {{ stats.templates }} active
                         </span>
@@ -117,8 +124,10 @@ defineOptions({
                 <Link :href="aiUsageIndex()">
                     <Activity class="size-4" />
                     <span class="text-left">
-                        <span class="block text-sm font-medium">AI usage log</span>
-                        <span class="text-muted-foreground block text-xs"
+                        <span class="block text-sm font-medium"
+                            >AI usage log</span
+                        >
+                        <span class="block text-xs text-muted-foreground"
                             >Every call, with tokens and errors</span
                         >
                     </span>
@@ -131,14 +140,14 @@ defineOptions({
             <h2 class="flex items-center gap-2 text-sm font-semibold">
                 <AlertTriangle class="size-4" /> Heavy usage today
             </h2>
-            <p class="text-muted-foreground mt-1 text-sm">
+            <p class="mt-1 text-sm text-muted-foreground">
                 Accounts past {{ abuseThreshold }} generations in a single day.
                 Worth a look before they burn through the API budget.
             </p>
 
             <p
                 v-if="heavyUsers.length === 0"
-                class="text-muted-foreground mt-4 text-sm"
+                class="mt-4 text-sm text-muted-foreground"
             >
                 Nobody is over the threshold right now.
             </p>
@@ -154,11 +163,11 @@ defineOptions({
                             {{ row.user?.name ?? 'Deleted user' }}
                             <span
                                 v-if="row.user?.banned_at"
-                                class="text-destructive ml-1 text-xs"
+                                class="ml-1 text-xs text-destructive"
                                 >suspended</span
                             >
                         </div>
-                        <div class="text-muted-foreground truncate text-xs">
+                        <div class="truncate text-xs text-muted-foreground">
                             {{ row.user?.email }}
                         </div>
                     </div>

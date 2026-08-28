@@ -174,7 +174,8 @@ function save(): void {
     const payload = { ...form, fields: fields.value };
     const options = {
         preserveScroll: true,
-        onError: (received: Record<string, string>) => (errors.value = received),
+        onError: (received: Record<string, string>) =>
+            (errors.value = received),
         onFinish: () => (saving.value = false),
     };
 
@@ -209,7 +210,11 @@ function save(): void {
             <section class="grid gap-4 rounded-xl border p-5 sm:grid-cols-2">
                 <div class="grid gap-2 sm:col-span-2">
                     <Label for="name">Name</Label>
-                    <Input id="name" v-model="form.name" placeholder="Grayscale Accent" />
+                    <Input
+                        id="name"
+                        v-model="form.name"
+                        placeholder="Grayscale Accent"
+                    />
                     <InputError :message="errors.name" />
                 </div>
 
@@ -235,7 +240,7 @@ function save(): void {
                         />
                         <Input v-model="form.accent_color" class="flex-1" />
                     </div>
-                    <p class="text-muted-foreground text-xs">
+                    <p class="text-xs text-muted-foreground">
                         Available in the HTML as the accent token.
                     </p>
                     <InputError :message="errors.accent_color" />
@@ -278,7 +283,7 @@ function save(): void {
                     <Label for="html">Email HTML</Label>
                     <span
                         v-if="analysing"
-                        class="text-muted-foreground animate-pulse text-xs"
+                        class="animate-pulse text-xs text-muted-foreground"
                         >checking…</span
                     >
                 </div>
@@ -291,12 +296,12 @@ function save(): void {
                 />
                 <InputError :message="errors.html" />
 
-                <div class="text-muted-foreground space-y-1 text-xs">
+                <div class="space-y-1 text-xs text-muted-foreground">
                     <p class="flex items-start gap-1.5">
                         <Info class="mt-0.5 size-3.5 shrink-0" />
                         <span>
-                            Write a single value as a token in double braces. For
-                            a repeating list, wrap a block between a
+                            Write a single value as a token in double braces.
+                            For a repeating list, wrap a block between a
                             <code>#token</code> opener and a
                             <code>/token</code> closer, and use a lone dot for
                             each item.
@@ -325,7 +330,10 @@ function save(): void {
                             v-if="warning.level === 'error'"
                             class="mt-0.5 size-3.5 shrink-0"
                         />
-                        <TriangleAlert v-else class="mt-0.5 size-3.5 shrink-0" />
+                        <TriangleAlert
+                            v-else
+                            class="mt-0.5 size-3.5 shrink-0"
+                        />
                         <span>{{ warning.message }}</span>
                     </div>
                 </div>
@@ -337,7 +345,7 @@ function save(): void {
                     <h2 class="text-sm font-semibold">
                         Detected fields ({{ contentFields.length }})
                     </h2>
-                    <p class="text-muted-foreground mt-1 text-sm">
+                    <p class="mt-1 text-sm text-muted-foreground">
                         These become the user's form. Rename the labels and mark
                         which ones the AI should write.
                     </p>
@@ -345,7 +353,7 @@ function save(): void {
 
                 <div
                     v-if="contentFields.length === 0"
-                    class="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm"
+                    class="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground"
                 >
                     No content tokens yet — add some to the HTML above.
                 </div>
@@ -357,7 +365,7 @@ function save(): void {
                 >
                     <div class="grid gap-2">
                         <code
-                            class="bg-muted w-fit rounded px-1.5 py-0.5 text-xs"
+                            class="w-fit rounded bg-muted px-1.5 py-0.5 text-xs"
                             >{{ field.token }}</code
                         >
                         <Input v-model="field.label" placeholder="Label" />
@@ -376,7 +384,7 @@ function save(): void {
                     <div class="space-y-2">
                         <select
                             v-model="field.type"
-                            class="border-input dark:bg-input/30 h-9 w-full rounded-md border bg-transparent px-2 text-sm"
+                            class="h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm dark:bg-input/30"
                         >
                             <option value="text">Short text</option>
                             <option value="textarea">Paragraph</option>
@@ -409,14 +417,14 @@ function save(): void {
                 </div>
 
                 <div v-if="systemFields.length" class="pt-2">
-                    <h3 class="text-muted-foreground text-xs font-medium">
+                    <h3 class="text-xs font-medium text-muted-foreground">
                         Filled automatically ({{ systemFields.length }})
                     </h3>
                     <div class="mt-2 flex flex-wrap gap-1.5">
                         <code
                             v-for="field in systemFields"
                             :key="field.token"
-                            class="bg-muted rounded px-1.5 py-0.5 text-xs"
+                            class="rounded bg-muted px-1.5 py-0.5 text-xs"
                             >{{ field.token }}</code
                         >
                     </div>
@@ -429,40 +437,40 @@ function save(): void {
 
                 <div class="mt-3 space-y-3 text-xs">
                     <div>
-                        <div class="text-muted-foreground mb-1.5">
+                        <div class="mb-1.5 text-muted-foreground">
                             From the user's profile
                         </div>
                         <div class="flex flex-wrap gap-1.5">
                             <code
                                 v-for="token in tokenReference.profile"
                                 :key="token"
-                                class="bg-muted rounded px-1.5 py-0.5"
+                                class="rounded bg-muted px-1.5 py-0.5"
                                 >{{ token }}</code
                             >
                         </div>
                     </div>
                     <div>
-                        <div class="text-muted-foreground mb-1.5">
+                        <div class="mb-1.5 text-muted-foreground">
                             From the application (the AI fills blanks)
                         </div>
                         <div class="flex flex-wrap gap-1.5">
                             <code
                                 v-for="token in tokenReference.application"
                                 :key="token"
-                                class="bg-muted rounded px-1.5 py-0.5"
+                                class="rounded bg-muted px-1.5 py-0.5"
                                 >{{ token }}</code
                             >
                         </div>
                     </div>
                     <div>
-                        <div class="text-muted-foreground mb-1.5">
+                        <div class="mb-1.5 text-muted-foreground">
                             Palette, derived from the accent colour above
                         </div>
                         <div class="flex flex-wrap gap-1.5">
                             <code
                                 v-for="token in tokenReference.template"
                                 :key="token"
-                                class="bg-muted rounded px-1.5 py-0.5"
+                                class="rounded bg-muted px-1.5 py-0.5"
                                 >{{ token }}</code
                             >
                         </div>

@@ -10,7 +10,12 @@ import { index as adminUsersIndex } from '@/routes/admin/users';
 
 type Row = {
     id: number;
-    user: { id: number; name: string; email: string; banned_at: string | null } | null;
+    user: {
+        id: number;
+        name: string;
+        email: string;
+        banned_at: string | null;
+    } | null;
     application: { id: number; title: string; company: string | null } | null;
     model: string;
     status: string;
@@ -54,7 +59,7 @@ const tabs = [
             description="Every DeepSeek call this app has made, with tokens spent and the IP it came from."
         />
 
-        <div class="bg-muted inline-flex gap-1 rounded-lg p-1">
+        <div class="inline-flex gap-1 rounded-lg bg-muted p-1">
             <Button
                 v-for="tab in tabs"
                 :key="tab.key"
@@ -85,7 +90,7 @@ const tabs = [
 
         <div class="overflow-x-auto rounded-xl border">
             <table class="w-full text-sm">
-                <thead class="bg-muted/50 text-muted-foreground text-xs">
+                <thead class="bg-muted/50 text-xs text-muted-foreground">
                     <tr>
                         <th class="px-4 py-3 text-left font-medium">When</th>
                         <th class="px-4 py-3 text-left font-medium">User</th>
@@ -105,7 +110,7 @@ const tabs = [
                         class="hover:bg-accent/30"
                     >
                         <td
-                            class="text-muted-foreground px-4 py-3 text-xs whitespace-nowrap"
+                            class="px-4 py-3 text-xs whitespace-nowrap text-muted-foreground"
                         >
                             {{ row.created_at }}
                         </td>
@@ -119,12 +124,14 @@ const tabs = [
                                 "
                                 class="hover:underline"
                             >
-                                <div class="font-medium">{{ row.user.name }}</div>
-                                <div class="text-muted-foreground text-xs">
+                                <div class="font-medium">
+                                    {{ row.user.name }}
+                                </div>
+                                <div class="text-xs text-muted-foreground">
                                     {{ row.user.email }}
                                 </div>
                             </Link>
-                            <span v-else class="text-muted-foreground text-xs"
+                            <span v-else class="text-xs text-muted-foreground"
                                 >deleted</span
                             >
                         </td>
@@ -148,7 +155,7 @@ const tabs = [
                             >
                             <div
                                 v-if="row.error"
-                                class="text-muted-foreground mt-1 max-w-xs truncate text-xs"
+                                class="mt-1 max-w-xs truncate text-xs text-muted-foreground"
                                 :title="row.error"
                             >
                                 {{ row.error }}
@@ -158,12 +165,12 @@ const tabs = [
                             {{ row.total_tokens.toLocaleString() }}
                         </td>
                         <td
-                            class="text-muted-foreground px-4 py-3 text-right text-xs"
+                            class="px-4 py-3 text-right text-xs text-muted-foreground"
                         >
                             {{ (row.duration_ms / 1000).toFixed(1) }}s
                         </td>
                         <td
-                            class="text-muted-foreground px-4 py-3 font-mono text-xs"
+                            class="px-4 py-3 font-mono text-xs text-muted-foreground"
                         >
                             {{ row.ip_address }}
                         </td>
@@ -171,7 +178,7 @@ const tabs = [
                     <tr v-if="generations.data.length === 0">
                         <td
                             colspan="7"
-                            class="text-muted-foreground px-4 py-10 text-center text-sm"
+                            class="px-4 py-10 text-center text-sm text-muted-foreground"
                         >
                             No AI calls recorded yet.
                         </td>
