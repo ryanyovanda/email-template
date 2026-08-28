@@ -17,8 +17,8 @@ import {
     X,
     Zap,
 } from '@lucide/vue';
-import { dashboard, login, register } from '@/routes';
 import { ref } from 'vue';
+import { dashboard, login, register } from '@/routes';
 
 const mobileMenuOpen = ref(false);
 
