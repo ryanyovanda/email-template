@@ -83,7 +83,7 @@ const steps = [
                 </div>
 
                 <!-- Desktop nav -->
-                <nav class="hidden items-center gap-1 text-sm md:flex">
+                <nav class="hidden items-center gap-1 text-sm lg:flex">
                     <Link
                         href="/tutorial"
                         class="px-4 py-2 font-medium transition-colors duration-200"
@@ -116,7 +116,7 @@ const steps = [
                 </nav>
 
                 <!-- Mobile: CTA + hamburger -->
-                <div class="flex items-center gap-2 md:hidden">
+                <div class="flex items-center gap-2 lg:hidden">
                     <Link
                         v-if="$page.props.auth.user"
                         :href="dashboard()"
@@ -145,7 +145,7 @@ const steps = [
             <!-- Mobile menu dropdown -->
             <div
                 v-if="mobileMenuOpen"
-                class="border-t px-4 pb-4 md:hidden"
+                class="border-t px-4 pb-4 lg:hidden"
                 style="
                     background: rgba(245, 245, 240, 0.97);
                     border-color: rgba(0, 0, 0, 0.06);
