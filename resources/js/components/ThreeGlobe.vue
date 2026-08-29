@@ -14,13 +14,13 @@ onMounted(() => {
         return;
     }
 
+    const parent = canvas.parentElement;
+
+    const getW = () => (parent ? parent.clientWidth : window.innerWidth);
+    const getH = () => (parent ? parent.clientHeight : window.innerHeight);
+
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(
-        45,
-        window.innerWidth / window.innerHeight,
-        0.1,
-        1000,
-    );
+    const camera = new THREE.PerspectiveCamera(45, getW() / getH(), 0.1, 1000);
     camera.position.z = 300;
 
     renderer = new THREE.WebGLRenderer({
@@ -29,7 +29,7 @@ onMounted(() => {
         antialias: true,
     });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(getW(), getH());
 
     const globe = new THREE.Group();
     scene.add(globe);
@@ -151,9 +151,9 @@ onMounted(() => {
             return;
         }
 
-        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.aspect = getW() / getH();
         camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize(getW(), getH());
     };
 
     window.addEventListener('resize', onResize);
@@ -201,6 +201,6 @@ onBeforeUnmount(() => {
 <template>
     <canvas
         ref="canvasEl"
-        class="pointer-events-none fixed inset-0 z-[1] h-full w-full"
+        class="pointer-events-none absolute inset-0 h-full w-full"
     ></canvas>
 </template>
