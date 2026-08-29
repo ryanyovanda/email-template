@@ -155,6 +155,6 @@ onBeforeUnmount(() => {
 <template>
     <canvas
         ref="canvasEl"
-        class="pointer-events-none fixed inset-0 -z-10 h-full w-full"
+        class="pointer-events-none fixed inset-0 z-[1] h-full w-full"
     ></canvas>
 </template>
