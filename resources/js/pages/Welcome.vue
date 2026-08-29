@@ -3,96 +3,183 @@ import { Head, Link } from '@inertiajs/vue3';
 import {
     ArrowRight,
     Check,
-    Clipboard,
+    ChevronDown,
+    CreditCard,
     Eye,
     LayoutTemplate,
     Lock,
     Mail,
     Menu,
     Send,
+    ShieldCheck,
     Sparkles,
     User,
     Wand2,
     X,
-    Zap,
 } from '@lucide/vue';
 import { onMounted, ref } from 'vue';
-import ThreeBackground from '@/components/ThreeBackground.vue';
+import ThreeGlobe from '@/components/ThreeGlobe.vue';
 import { dashboard, login, register } from '@/routes';
 
 const mobileMenuOpen = ref(false);
+const openFaq = ref(0);
 
-const glass = {
-    background: 'rgba(255,255,255,0.08)',
-    backdropFilter: 'blur(20px) saturate(180%)',
-    WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-    border: '1px solid rgba(255,255,255,0.18)',
-    boxShadow:
-        '0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.25)',
+const toggleMobileMenu = () => {
+    mobileMenuOpen.value = !mobileMenuOpen.value;
+};
+
+const closeMobileMenu = () => {
+    mobileMenuOpen.value = false;
+};
+
+const toggleFaq = (index: number) => {
+    if (openFaq.value === index) {
+        openFaq.value = -1;
+
+        return;
+    }
+
+    openFaq.value = index;
 };
 
 const steps = [
     {
         num: '01',
         icon: User,
-        title: 'Setup profil & CV',
-        body: 'Upload CV-mu, isi nama dan kontak. Kami ekstrak teksnya biar kamu nggak perlu ketik ulang hal yang sama berkali-kali.',
+        title: 'Add your CV & profile',
+        body: 'Upload your CV and confirm your name and contact details. We extract the text once so you never retype the same information again.',
     },
     {
         num: '02',
         icon: LayoutTemplate,
-        title: 'Pilih template',
-        body: 'Template HTML berbasis tabel, inline-styled, yang tampil sama persis di Gmail, Outlook, dan Apple Mail.',
+        title: 'Pick a template',
+        body: 'Choose a table-based, inline-styled HTML layout that renders identically in Gmail, Outlook and Apple Mail — no broken formatting.',
     },
     {
         num: '03',
         icon: Wand2,
-        title: 'Isi atau AI draft',
-        body: 'Paste job posting, AI nulis tiap field berdasarkan CV aslimu — lalu kamu edit sebelum dikirim.',
+        title: 'Draft with AI or write it',
+        body: 'Paste the job posting and let AI compose each field from your real CV, or write every line yourself. You always edit before sending.',
     },
     {
         num: '04',
         icon: Send,
-        title: 'Copy & kirim',
-        body: 'Paste ke Gmail-mu sendiri. Terkirim dari alamat aslimu. Balasan masuk langsung ke inbox kamu.',
+        title: 'Copy into Gmail & send',
+        body: 'Copy the finished email into your own Gmail and hit send. It goes out from your real address, so replies come straight back to you.',
     },
 ];
 
 const features = [
     {
         icon: Sparkles,
-        title: 'AI drafting cerdas',
-        body: 'Tempel lowongan, AI merangkai email yang nyambung sama CV kamu. Bukan template generik.',
+        title: 'AI grounded in your CV',
+        body: 'Paste a job posting and get a tailored first draft built from your actual experience. The model works from your CV, so it references real roles and skills instead of inventing them.',
+        span: 'lg:col-span-2 lg:row-span-2',
     },
     {
         icon: Eye,
-        title: 'Preview persis Gmail',
-        body: 'Lihat hasil akhir sebelum kirim. Yang kamu lihat = yang HR lihat, sampai ke pixel.',
+        title: 'Pixel-accurate Gmail preview',
+        body: 'See the exact email the recruiter will open — desktop and mobile — before you copy a single line.',
+        span: 'lg:col-span-1',
     },
     {
         icon: LayoutTemplate,
-        title: 'Template email-safe',
-        body: 'HTML berbasis tabel yang nggak rusak di client email manapun.',
+        title: 'A template library that survives',
+        body: 'Table-based, inline-styled HTML that holds its shape across every major email client.',
+        span: 'lg:col-span-1',
+    },
+    {
+        icon: ShieldCheck,
+        title: 'Sent from your own address',
+        body: 'Delivery runs through your Gmail, not a shared marketing server — so you inherit your own sending reputation and stay out of spam.',
+        span: 'lg:col-span-2',
+    },
+    {
+        icon: CreditCard,
+        title: 'Simple credit system',
+        body: 'Start free and spend a credit only when you generate an email. No subscription required to try it.',
+        span: 'lg:col-span-1',
     },
     {
         icon: Lock,
-        title: 'Data kamu, milik kamu',
-        body: 'CV dan data tersimpan aman. Dikirim lewat Gmail-mu sendiri, bukan server pihak ketiga.',
-    },
-    {
-        icon: Zap,
-        title: 'Cepat banget',
-        body: 'Dari CV ke email siap kirim dalam hitungan menit, bukan jam.',
-    },
-    {
-        icon: Mail,
-        title: 'Kirim dari Gmail-mu',
-        body: 'Alamat asli kamu, reputasi kamu. Balasan langsung ke inbox pribadi.',
+        title: 'Your data stays yours',
+        body: 'Your CV and profile are stored securely and used only to build your emails — never resold, never shared.',
+        span: 'lg:col-span-1',
     },
 ];
 
-// Scroll-reveal — runs after mount, observes every [data-animate] element.
+const stats = [
+    { value: '10k+', label: 'Emails composed' },
+    { value: '92%', label: 'Primary-inbox rate' },
+    { value: '3 min', label: 'Average setup time' },
+    { value: '100%', label: 'Sent from your Gmail' },
+];
+
+const faqs = [
+    {
+        q: 'Does ApplyMail send emails for me?',
+        a: 'No — and that is the point. ApplyMail builds the email and shows you an exact Gmail preview, then you copy it into your own inbox and hit send. The message goes out from your real address, so every reply lands directly with you.',
+    },
+    {
+        q: 'Will my emails end up in spam?',
+        a: 'Because you send from your own Gmail account, you inherit your established personal sending reputation instead of a shared marketing server. That single factor is the biggest reason application emails reach a recruiter’s primary inbox rather than the spam folder.',
+    },
+    {
+        q: 'Does the AI make things up about me?',
+        a: 'No. The AI drafts strictly from the CV and details you provide, so it references your genuine experience rather than inventing skills or job titles. Every field stays fully editable, so you can refine any line before it ever leaves your screen.',
+    },
+    {
+        q: 'What will the email actually look like to the recruiter?',
+        a: 'Exactly like the preview. We render table-based, inline-styled HTML that survives Gmail, Outlook and Apple Mail, and we show you both desktop and mobile views before you copy it. What you see is what they open.',
+    },
+    {
+        q: 'How much does ApplyMail cost?',
+        a: 'You can start for free. Drafting and generating emails run on a simple credit system, so you only spend when you actually create a message — there is no subscription required just to try it out.',
+    },
+    {
+        q: 'Is my CV and personal data safe?',
+        a: 'Your CV and profile are stored securely and used only to build your emails. Because delivery happens through your own Gmail, the content of your message is never routed through a third-party sending server.',
+    },
+];
+
+const productLinks = [
+    { label: 'Features', href: '#features' },
+    { label: 'How it works', href: '#how-it-works' },
+    { label: 'Two modes', href: '#modes' },
+    { label: 'FAQ', href: '#faq' },
+];
+
+const resourceLinks = [
+    { label: 'Tutorial', href: '/tutorial' },
+    { label: 'Templates', href: '#features' },
+    { label: 'Deliverability', href: '#why-gmail' },
+];
+
+const legalLinks = [
+    { label: 'Privacy', href: '#' },
+    { label: 'Terms', href: '#' },
+    { label: 'Contact', href: '#' },
+];
+
 onMounted(() => {
+    const faqSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faqs.map((item) => ({
+            '@type': 'Question',
+            name: item.q,
+            acceptedAnswer: {
+                '@type': 'Answer',
+                text: item.a,
+            },
+        })),
+    };
+
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.textContent = JSON.stringify(faqSchema);
+    document.head.appendChild(script);
+
     const observer = new IntersectionObserver(
         (entries) => {
             entries.forEach((entry) => {
@@ -112,135 +199,112 @@ onMounted(() => {
 </script>
 
 <template>
-    <Head title="Email lamaran yang bikin HR berhenti scroll — ApplyMail" />
+    <Head>
+        <title>ApplyMail — Application emails that get read</title>
+        <meta
+            name="description"
+            content="Turn your CV and any job posting into a polished HTML application email, previewed exactly as Gmail renders it, and sent from your own Gmail inbox."
+        />
+        <meta
+            property="og:title"
+            content="ApplyMail — Application emails that get read"
+        />
+        <meta
+            property="og:description"
+            content="Designed HTML application emails from your CV, previewed exactly as Gmail renders them, sent from your own address so you never land in spam."
+        />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta
+            name="twitter:title"
+            content="ApplyMail — Application emails that get read"
+        />
+        <meta
+            name="twitter:description"
+            content="Designed HTML application emails from your CV, previewed exactly as Gmail renders them, sent from your own Gmail."
+        />
+    </Head>
 
-    <div class="relative min-h-screen overflow-x-hidden font-sans text-white">
-        <!-- Gradient base layer (bottom) -->
-        <div
-            class="fixed inset-0 z-0"
-            style="
-                background: linear-gradient(
-                    160deg,
-                    #1e1b4b 0%,
-                    #312e81 30%,
-                    #6d28d9 60%,
-                    #9d174d 100%
-                );
-            "
-        ></div>
-        <ThreeBackground />
+    <div
+        class="relative min-h-screen overflow-x-hidden font-sans text-white antialiased"
+    >
+        <!-- Pure-black base layer (bottom of the stack) -->
+        <div class="fixed inset-0 z-0" style="background: #0a0a0a"></div>
 
-        <!-- All content sits above the animated background -->
+        <!-- Animated white wireframe globe (fixed, z-1, transparent canvas) -->
+        <ThreeGlobe />
+
+        <!-- All page content sits above the animated background -->
         <div class="relative z-10">
-            <!-- NAV -->
+            <!-- ============ NAV ============ -->
             <header class="fixed top-0 right-0 left-0 z-50">
                 <div
-                    class="mx-auto mt-3 flex max-w-6xl items-center justify-between rounded-2xl px-4 py-3 sm:mt-4 sm:px-5"
-                    :style="{
-                        ...glass,
-                        marginLeft: '1rem',
-                        marginRight: '1rem',
-                    }"
+                    class="border-b border-white/10"
+                    style="
+                        background: rgba(10, 10, 10, 0.55);
+                        backdrop-filter: blur(12px);
+                        -webkit-backdrop-filter: blur(12px);
+                    "
                 >
-                    <!-- Logo -->
-                    <div class="flex items-center gap-2">
-                        <div
-                            class="flex size-8 items-center justify-center rounded-xl"
-                            style="
-                                background: linear-gradient(
-                                    135deg,
-                                    #a855f7,
-                                    #ec4899
-                                );
-                                box-shadow: 0 4px 16px rgba(168, 85, 247, 0.5);
-                            "
-                        >
-                            <Mail class="size-4 text-white" />
-                        </div>
-                        <span
-                            class="text-base font-bold tracking-tight text-white"
-                            >ApplyMail</span
-                        >
-                    </div>
+                    <div
+                        class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5 sm:px-6"
+                    >
+                        <!-- Logo -->
+                        <a href="#top" class="flex items-center gap-2.5">
+                            <span
+                                class="flex size-8 items-center justify-center rounded-md bg-white"
+                            >
+                                <Mail class="size-4 text-black" />
+                            </span>
+                            <span
+                                class="text-base font-semibold tracking-tight text-white"
+                                >ApplyMail</span
+                            >
+                        </a>
 
-                    <!-- Desktop nav -->
-                    <nav class="hidden items-center gap-1 text-sm lg:flex">
-                        <Link
-                            href="/tutorial"
-                            class="rounded-full px-4 py-2 font-medium text-white/80 transition-colors duration-200 hover:text-white"
-                        >
-                            Tutorial
-                        </Link>
-                        <Link
-                            v-if="$page.props.auth.user"
-                            :href="dashboard()"
-                            class="ml-1 rounded-full px-5 py-2 text-sm font-semibold text-white transition-transform duration-200 hover:scale-105"
-                            style="
-                                background: linear-gradient(
-                                    135deg,
-                                    #a855f7,
-                                    #ec4899
-                                );
-                                box-shadow: 0 4px 20px rgba(168, 85, 247, 0.5);
-                            "
-                        >
-                            Dashboard
-                        </Link>
-                        <template v-else>
-                            <Link
-                                :href="login()"
-                                class="rounded-full px-4 py-2 font-medium text-white/80 transition-colors duration-200 hover:text-white"
-                                >Log in</Link
+                        <!-- Desktop nav -->
+                        <nav class="hidden items-center gap-7 text-sm lg:flex">
+                            <a
+                                href="#features"
+                                class="text-white/60 transition-colors hover:text-white"
+                                >Features</a
+                            >
+                            <a
+                                href="#how-it-works"
+                                class="text-white/60 transition-colors hover:text-white"
+                                >How it works</a
+                            >
+                            <a
+                                href="#faq"
+                                class="text-white/60 transition-colors hover:text-white"
+                                >FAQ</a
                             >
                             <Link
-                                :href="register()"
-                                class="ml-1 rounded-full px-5 py-2 text-sm font-semibold text-white transition-transform duration-200 hover:scale-105"
-                                style="
-                                    background: linear-gradient(
-                                        135deg,
-                                        #a855f7,
-                                        #ec4899
-                                    );
-                                    box-shadow: 0 4px 20px
-                                        rgba(168, 85, 247, 0.5);
-                                "
-                                >Get started</Link
+                                v-if="$page.props.auth.user"
+                                :href="dashboard()"
+                                class="rounded-md bg-white px-4 py-2 text-sm font-semibold text-black transition-opacity hover:opacity-90"
                             >
-                        </template>
-                    </nav>
+                                Dashboard
+                            </Link>
+                            <template v-else>
+                                <Link
+                                    :href="login()"
+                                    class="text-white/60 transition-colors hover:text-white"
+                                    >Login</Link
+                                >
+                                <Link
+                                    :href="register()"
+                                    class="rounded-md bg-white px-4 py-2 text-sm font-semibold text-black transition-opacity hover:opacity-90"
+                                    >Get started</Link
+                                >
+                            </template>
+                        </nav>
 
-                    <!-- Mobile: CTA + hamburger -->
-                    <div class="flex items-center gap-2 lg:hidden">
-                        <Link
-                            v-if="$page.props.auth.user"
-                            :href="dashboard()"
-                            class="rounded-full px-4 py-1.5 text-sm font-semibold text-white"
-                            style="
-                                background: linear-gradient(
-                                    135deg,
-                                    #a855f7,
-                                    #ec4899
-                                );
-                            "
-                            >Dashboard</Link
-                        >
-                        <Link
-                            v-else
-                            :href="register()"
-                            class="rounded-full px-4 py-1.5 text-sm font-semibold text-white"
-                            style="
-                                background: linear-gradient(
-                                    135deg,
-                                    #a855f7,
-                                    #ec4899
-                                );
-                            "
-                            >Mulai gratis</Link
-                        >
+                        <!-- Mobile hamburger -->
                         <button
-                            class="flex size-9 items-center justify-center rounded-xl text-white"
-                            style="background: rgba(255, 255, 255, 0.12)"
-                            @click="mobileMenuOpen = !mobileMenuOpen"
+                            class="flex size-9 items-center justify-center rounded-md border border-white/10 text-white lg:hidden"
+                            aria-label="Toggle menu"
+                            @click="toggleMobileMenu"
                         >
                             <X v-if="mobileMenuOpen" class="size-4" />
                             <Menu v-else class="size-4" />
@@ -248,701 +312,94 @@ onMounted(() => {
                     </div>
                 </div>
 
-                <!-- Mobile menu dropdown -->
+                <!-- Mobile dropdown -->
                 <div
                     v-if="mobileMenuOpen"
-                    class="mx-4 mt-2 rounded-2xl px-3 py-3 lg:hidden"
-                    :style="glass"
+                    class="border-b border-white/10 lg:hidden"
+                    style="
+                        background: rgba(10, 10, 10, 0.92);
+                        backdrop-filter: blur(12px);
+                        -webkit-backdrop-filter: blur(12px);
+                    "
                 >
-                    <div class="flex flex-col gap-1 text-sm">
-                        <Link
-                            href="/tutorial"
-                            class="rounded-xl px-4 py-3 font-medium text-white/90 hover:bg-white/10"
-                            @click="mobileMenuOpen = false"
-                            >Tutorial</Link
+                    <div
+                        class="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-4"
+                    >
+                        <a
+                            href="#features"
+                            class="rounded-md px-3 py-3 text-sm text-white/80 hover:bg-white/5"
+                            @click="closeMobileMenu"
+                            >Features</a
+                        >
+                        <a
+                            href="#how-it-works"
+                            class="rounded-md px-3 py-3 text-sm text-white/80 hover:bg-white/5"
+                            @click="closeMobileMenu"
+                            >How it works</a
+                        >
+                        <a
+                            href="#faq"
+                            class="rounded-md px-3 py-3 text-sm text-white/80 hover:bg-white/5"
+                            @click="closeMobileMenu"
+                            >FAQ</a
                         >
                         <Link
-                            v-if="!$page.props.auth.user"
-                            :href="login()"
-                            class="rounded-xl px-4 py-3 font-medium text-white/90 hover:bg-white/10"
-                            @click="mobileMenuOpen = false"
-                            >Log in</Link
+                            v-if="$page.props.auth.user"
+                            :href="dashboard()"
+                            class="mt-1 rounded-md bg-white px-3 py-3 text-center text-sm font-semibold text-black"
+                            @click="closeMobileMenu"
+                            >Dashboard</Link
                         >
+                        <template v-else>
+                            <Link
+                                :href="login()"
+                                class="rounded-md px-3 py-3 text-sm text-white/80 hover:bg-white/5"
+                                @click="closeMobileMenu"
+                                >Login</Link
+                            >
+                            <Link
+                                :href="register()"
+                                class="mt-1 rounded-md bg-white px-3 py-3 text-center text-sm font-semibold text-black"
+                                @click="closeMobileMenu"
+                                >Get started</Link
+                            >
+                        </template>
                     </div>
                 </div>
             </header>
 
-            <!-- HERO -->
-            <section
-                class="relative flex min-h-screen flex-col items-center justify-center px-4 pt-28 pb-16 sm:px-6 sm:pt-32"
-            >
-                <div
-                    class="relative z-10 mx-auto max-w-5xl text-center"
-                    data-animate
+            <main id="top">
+                <!-- ============ HERO ============ -->
+                <section
+                    class="relative flex min-h-screen flex-col items-center justify-center px-4 pt-32 pb-20 text-center sm:px-6"
                 >
-                    <!-- Badge -->
-                    <div class="mb-6 inline-flex sm:mb-8">
-                        <span
-                            class="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium text-white sm:text-sm"
-                            :style="glass"
-                        >
-                            <Sparkles class="size-3.5" style="color: #fbbf24" />
-                            AI-powered email lamaran
-                        </span>
-                    </div>
-
-                    <!-- Headline -->
-                    <h1
-                        class="mb-5 text-4xl leading-[1.05] font-black tracking-tight text-white sm:mb-6 sm:text-5xl md:text-6xl lg:text-8xl"
-                    >
-                        Email lamaran yang<br />
-                        bikin HR berhenti<br />
-                        <span
-                            class="bg-clip-text text-transparent"
-                            style="
-                                background-image: linear-gradient(
-                                    100deg,
-                                    #fbbf24,
-                                    #f472b6 45%,
-                                    #a855f7 100%
-                                );
-                                -webkit-background-clip: text;
-                                background-clip: text;
-                            "
-                            >scroll.</span
-                        >
-                    </h1>
-
-                    <!-- Subtext -->
-                    <p
-                        class="mx-auto mb-8 max-w-sm text-base leading-relaxed text-white/70 sm:mb-10 sm:max-w-xl sm:text-xl"
-                    >
-                        Ubah CV + lowongan jadi email HTML yang elegan, preview
-                        persis kayak di Gmail, lalu kirim dari akun Gmail kamu
-                        sendiri.
-                    </p>
-
-                    <!-- CTA -->
-                    <div
-                        class="mb-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4"
-                    >
-                        <Link
-                            :href="
-                                $page.props.auth.user ? dashboard() : register()
-                            "
-                            class="inline-flex w-full items-center justify-center gap-2 rounded-2xl px-8 py-4 text-base font-bold text-white transition-transform duration-200 hover:scale-105 sm:w-auto"
-                            style="
-                                background: linear-gradient(
-                                    135deg,
-                                    #a855f7,
-                                    #ec4899
-                                );
-                                box-shadow: 0 8px 30px rgba(236, 72, 153, 0.5);
-                            "
-                        >
-                            Mulai gratis
-                            <ArrowRight class="size-4" />
-                        </Link>
-                        <Link
-                            href="/tutorial"
-                            class="inline-flex w-full items-center justify-center gap-2 rounded-2xl px-8 py-4 text-base font-semibold text-white transition-transform duration-200 hover:scale-105 sm:w-auto"
-                            :style="glass"
-                        >
-                            Lihat tutorial
-                        </Link>
-                    </div>
-
-                    <!-- Social proof -->
-                    <div
-                        class="flex flex-wrap items-center justify-center gap-3 text-xs font-medium text-white/60 sm:gap-6 sm:text-sm"
-                    >
-                        <span class="flex items-center gap-1.5"
-                            ><Check
-                                class="size-4"
-                                style="color: #fbbf24"
-                            />Gratis selamanya</span
-                        >
-                        <span class="flex items-center gap-1.5"
-                            ><Check
-                                class="size-4"
-                                style="color: #fbbf24"
-                            />Tanpa kartu kredit</span
-                        >
-                        <span class="flex items-center gap-1.5"
-                            ><Check class="size-4" style="color: #fbbf24" />AI
-                            drafting included</span
-                        >
-                    </div>
-                </div>
-
-                <!-- Hero mockup — hidden below md -->
-                <div
-                    class="relative mx-auto mt-14 hidden w-full max-w-3xl px-2 md:mt-20 md:block"
-                    data-animate
-                >
-                    <div
-                        class="float-card overflow-hidden rounded-3xl"
-                        :style="glass"
-                    >
-                        <!-- Browser chrome -->
-                        <div
-                            class="flex items-center gap-2 border-b px-5 py-3.5"
-                            style="
-                                border-color: rgba(255, 255, 255, 0.12);
-                                background: rgba(255, 255, 255, 0.05);
-                            "
-                        >
-                            <div class="size-3 rounded-full bg-red-400"></div>
-                            <div
-                                class="size-3 rounded-full bg-yellow-400"
-                            ></div>
-                            <div class="size-3 rounded-full bg-green-400"></div>
-                            <div
-                                class="mx-auto rounded-md px-24 py-1 text-xs text-white/60"
-                                style="background: rgba(255, 255, 255, 0.08)"
-                            >
-                                mail.google.com
-                            </div>
-                        </div>
-                        <!-- Email body -->
-                        <div class="flex">
-                            <div
-                                class="hidden w-48 shrink-0 border-r p-4 sm:block"
-                                style="border-color: rgba(255, 255, 255, 0.1)"
-                            >
-                                <div
-                                    class="mb-3 h-2.5 w-16 rounded-full"
-                                    style="
-                                        background: rgba(255, 255, 255, 0.18);
-                                    "
-                                ></div>
-                                <div class="space-y-2">
-                                    <div
-                                        class="flex items-center gap-2 rounded-lg px-2 py-1.5"
-                                        style="
-                                            background: rgba(
-                                                168,
-                                                85,
-                                                247,
-                                                0.25
-                                            );
-                                        "
-                                    >
-                                        <div
-                                            class="size-2 rounded-full"
-                                            style="background: #c084fc"
-                                        ></div>
-                                        <div
-                                            class="h-2 w-12 rounded-full"
-                                            style="
-                                                background: rgba(
-                                                    192,
-                                                    132,
-                                                    252,
-                                                    0.7
-                                                );
-                                            "
-                                        ></div>
-                                    </div>
-                                    <div
-                                        v-for="i in 4"
-                                        :key="i"
-                                        class="flex items-center gap-2 px-2 py-1.5"
-                                    >
-                                        <div
-                                            class="size-2 rounded-full"
-                                            style="
-                                                background: rgba(
-                                                    255,
-                                                    255,
-                                                    255,
-                                                    0.2
-                                                );
-                                            "
-                                        ></div>
-                                        <div
-                                            class="h-2 rounded-full"
-                                            :style="`width: ${[48, 40, 56, 36][i - 1]}px; background: rgba(255,255,255,0.14)`"
-                                        ></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="flex-1 p-6">
-                                <div
-                                    class="mb-5 border-b pb-4"
-                                    style="
-                                        border-color: rgba(255, 255, 255, 0.12);
-                                    "
-                                >
-                                    <div
-                                        class="mb-1.5 h-4 w-64 rounded-full"
-                                        style="
-                                            background: rgba(
-                                                255,
-                                                255,
-                                                255,
-                                                0.22
-                                            );
-                                        "
-                                    ></div>
-                                    <div class="flex items-center gap-2">
-                                        <div
-                                            class="size-6 rounded-full"
-                                            style="
-                                                background: linear-gradient(
-                                                    135deg,
-                                                    #a855f7,
-                                                    #ec4899
-                                                );
-                                            "
-                                        ></div>
-                                        <div
-                                            class="h-2.5 w-32 rounded-full"
-                                            style="
-                                                background: rgba(
-                                                    255,
-                                                    255,
-                                                    255,
-                                                    0.16
-                                                );
-                                            "
-                                        ></div>
-                                    </div>
-                                </div>
-                                <div class="space-y-3">
-                                    <div
-                                        class="rounded-xl p-4"
-                                        style="
-                                            background: linear-gradient(
-                                                135deg,
-                                                #a855f7 0%,
-                                                #ec4899 100%
-                                            );
-                                        "
-                                    >
-                                        <div
-                                            class="mb-2 flex items-center gap-2"
-                                        >
-                                            <div
-                                                class="size-8 rounded-full bg-white/30"
-                                            ></div>
-                                            <div class="space-y-1">
-                                                <div
-                                                    class="h-2.5 w-24 rounded-full bg-white/80"
-                                                ></div>
-                                                <div
-                                                    class="h-1.5 w-16 rounded-full bg-white/50"
-                                                ></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div
-                                        class="space-y-2 rounded-xl p-4"
-                                        style="
-                                            background: rgba(
-                                                255,
-                                                255,
-                                                255,
-                                                0.9
-                                            );
-                                        "
-                                    >
-                                        <div
-                                            class="h-2.5 w-3/4 rounded-full"
-                                            style="
-                                                background: rgba(0, 0, 0, 0.12);
-                                            "
-                                        ></div>
-                                        <div
-                                            class="h-2 w-full rounded-full"
-                                            style="
-                                                background: rgba(0, 0, 0, 0.07);
-                                            "
-                                        ></div>
-                                        <div
-                                            class="h-2 w-5/6 rounded-full"
-                                            style="
-                                                background: rgba(0, 0, 0, 0.07);
-                                            "
-                                        ></div>
-                                    </div>
-                                    <div class="flex flex-wrap gap-2">
-                                        <span
-                                            v-for="(chip, i) in [
-                                                'Vue.js',
-                                                'Laravel',
-                                                'TypeScript',
-                                                'Tailwind',
-                                            ]"
-                                            :key="chip"
-                                            class="rounded-full px-3 py-1 text-xs font-semibold text-white"
-                                            :style="`background: ${['#a855f7', '#3b82f6', '#10b981', '#f59e0b'][i]}`"
-                                            >{{ chip }}</span
-                                        >
-                                    </div>
-                                    <div class="flex justify-center pt-1">
-                                        <div
-                                            class="rounded-lg px-8 py-2.5"
-                                            style="
-                                                background: linear-gradient(
-                                                    135deg,
-                                                    #a855f7,
-                                                    #ec4899
-                                                );
-                                            "
-                                        >
-                                            <div
-                                                class="h-2.5 w-20 rounded-full bg-white/80"
-                                            ></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- LOGO STRIP -->
-            <section class="px-4 py-12 sm:px-6 sm:py-16" data-animate>
-                <div class="mx-auto max-w-6xl">
-                    <div
-                        class="flex flex-wrap items-center justify-center gap-4 rounded-2xl px-6 py-6 sm:gap-8"
-                        :style="glass"
-                    >
+                    <div class="mx-auto max-w-4xl" data-animate>
                         <p
-                            class="w-full text-center text-xs font-medium text-white/50 sm:w-auto sm:text-sm"
+                            class="mb-6 font-mono text-xs tracking-[0.25em] text-white/40 uppercase sm:text-sm"
                         >
-                            Dipakai oleh job seekers di
+                            // AI-powered application emails
                         </p>
-                        <div
-                            class="flex flex-wrap items-center justify-center gap-4 sm:gap-6"
-                        >
-                            <span
-                                v-for="brand in [
-                                    'Tokopedia',
-                                    'Gojek',
-                                    'Traveloka',
-                                    'Shopee',
-                                    'Grab',
-                                ]"
-                                :key="brand"
-                                class="text-xs font-bold text-white/70 sm:text-sm"
-                                >{{ brand }}</span
-                            >
-                        </div>
-                    </div>
-                </div>
-            </section>
 
-            <!-- HOW IT WORKS -->
-            <section class="px-4 py-16 sm:px-6 sm:py-24 lg:py-28">
-                <div class="mx-auto max-w-6xl">
-                    <div class="mb-10 text-center sm:mb-14" data-animate>
-                        <span
-                            class="mb-4 inline-flex items-center rounded-full px-4 py-1.5 text-xs font-semibold text-white sm:text-sm"
-                            :style="glass"
+                        <h1
+                            class="mb-6 text-4xl leading-[1.02] font-bold tracking-tight text-white sm:text-6xl md:text-7xl lg:text-8xl"
                         >
-                            Cara kerja
-                        </span>
-                        <h2
-                            class="text-3xl font-black tracking-tight text-white sm:text-4xl lg:text-5xl"
-                        >
-                            Empat langkah, email siap kirim
-                        </h2>
-                    </div>
-                    <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                        <div
-                            v-for="(step, i) in steps"
-                            :key="step.num"
-                            data-animate
-                            class="rounded-3xl p-6"
-                            :style="{
-                                ...glass,
-                                transitionDelay: `${i * 80}ms`,
-                            }"
-                        >
-                            <div
-                                class="mb-4 flex size-12 items-center justify-center rounded-2xl"
-                                style="
-                                    background: linear-gradient(
-                                        135deg,
-                                        #a855f7,
-                                        #ec4899
-                                    );
-                                    box-shadow: 0 6px 20px
-                                        rgba(168, 85, 247, 0.4);
-                                "
-                            >
-                                <component
-                                    :is="step.icon"
-                                    class="size-5 text-white"
-                                />
-                            </div>
-                            <span class="text-xs font-bold text-white/40">{{
-                                step.num
-                            }}</span>
-                            <h3 class="mt-1 text-lg font-bold text-white">
-                                {{ step.title }}
-                            </h3>
-                            <p
-                                class="mt-2 text-sm leading-relaxed text-white/65"
-                            >
-                                {{ step.body }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </section>
+                            Application emails
+                            <br class="hidden sm:block" />
+                            that actually
+                            <span class="text-white/40">get read.</span>
+                        </h1>
 
-            <!-- FEATURES BENTO -->
-            <section class="px-4 py-16 sm:px-6 sm:py-24 lg:py-28">
-                <div class="mx-auto max-w-6xl">
-                    <div class="mb-10 text-center sm:mb-14" data-animate>
-                        <span
-                            class="mb-4 inline-flex items-center rounded-full px-4 py-1.5 text-xs font-semibold text-white sm:text-sm"
-                            :style="glass"
-                        >
-                            Fitur
-                        </span>
-                        <h2
-                            class="text-3xl font-black tracking-tight text-white sm:text-4xl lg:text-5xl"
-                        >
-                            Semua yang kamu butuh buat<br
-                                class="hidden sm:block"
-                            />
-                            email lamaran yang stand out
-                        </h2>
-                    </div>
-                    <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                        <div
-                            v-for="(f, i) in features"
-                            :key="f.title"
-                            data-animate
-                            class="rounded-3xl p-7"
-                            :style="{
-                                ...glass,
-                                transitionDelay: `${i * 80}ms`,
-                            }"
-                        >
-                            <div
-                                class="mb-4 flex size-12 items-center justify-center rounded-2xl"
-                                style="background: rgba(255, 255, 255, 0.12)"
-                            >
-                                <component
-                                    :is="f.icon"
-                                    class="size-5"
-                                    style="color: #fbbf24"
-                                />
-                            </div>
-                            <h3 class="text-lg font-bold text-white">
-                                {{ f.title }}
-                            </h3>
-                            <p
-                                class="mt-2 text-sm leading-relaxed text-white/65"
-                            >
-                                {{ f.body }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- WHY GMAIL — quote -->
-            <section class="px-4 py-16 sm:px-6 sm:py-24 lg:py-28">
-                <div class="mx-auto max-w-4xl">
-                    <div
-                        class="rounded-[2rem] px-8 py-12 text-center sm:px-14 sm:py-16"
-                        :style="glass"
-                        data-animate
-                    >
-                        <div
-                            class="mx-auto mb-6 flex size-14 items-center justify-center rounded-2xl"
-                            style="
-                                background: linear-gradient(
-                                    135deg,
-                                    #a855f7,
-                                    #ec4899
-                                );
-                                box-shadow: 0 8px 24px rgba(236, 72, 153, 0.45);
-                            "
-                        >
-                            <Mail class="size-6 text-white" />
-                        </div>
                         <p
-                            class="text-2xl leading-snug font-bold text-white sm:text-3xl lg:text-4xl"
+                            class="mx-auto mb-9 max-w-2xl text-base leading-relaxed text-[#a1a1aa] sm:text-xl"
                         >
-                            “Kenapa kirim dari Gmail sendiri? Karena HR percaya
-                            alamat asli. Reputasi kamu tetap milik kamu, balasan
-                            masuk langsung ke inbox pribadi.”
+                            Turn your CV and any job posting into a designed
+                            HTML email, previewed exactly as Gmail renders it —
+                            then sent from your own inbox, so replies come back
+                            to you and you never land in spam.
                         </p>
-                        <p class="mt-6 text-sm font-medium text-white/60">
-                            Filosofi ApplyMail — kamu yang pegang kendali
-                        </p>
-                    </div>
-                </div>
-            </section>
 
-            <!-- TWO MODES -->
-            <section class="px-4 py-16 sm:px-6 sm:py-24 lg:py-28">
-                <div class="mx-auto max-w-6xl">
-                    <div class="mb-10 text-center sm:mb-14" data-animate>
-                        <span
-                            class="mb-4 inline-flex items-center rounded-full px-4 py-1.5 text-xs font-semibold text-white sm:text-sm"
-                            :style="glass"
-                        >
-                            Dua mode
-                        </span>
-                        <h2
-                            class="text-3xl font-black tracking-tight text-white sm:text-4xl lg:text-5xl"
-                        >
-                            Mau ketik sendiri atau dibantu AI?
-                        </h2>
-                    </div>
-                    <div class="grid gap-5 md:grid-cols-2">
                         <div
-                            data-animate
-                            class="rounded-3xl p-8"
-                            :style="glass"
-                        >
-                            <div
-                                class="mb-5 flex size-12 items-center justify-center rounded-2xl"
-                                style="background: rgba(255, 255, 255, 0.12)"
-                            >
-                                <Clipboard
-                                    class="size-5"
-                                    style="color: #fbbf24"
-                                />
-                            </div>
-                            <h3 class="text-xl font-bold text-white">Manual</h3>
-                            <p
-                                class="mt-2 text-sm leading-relaxed text-white/65"
-                            >
-                                Kendali penuh. Isi tiap field sendiri, susun
-                                pesanmu kata demi kata. Cocok buat yang suka
-                                nulis dari nol.
-                            </p>
-                            <ul class="mt-5 space-y-2.5">
-                                <li
-                                    v-for="item in [
-                                        'Template email-safe siap pakai',
-                                        'Preview realtime kayak Gmail',
-                                        'Kontrol penuh tiap kata',
-                                    ]"
-                                    :key="item"
-                                    class="flex items-center gap-2 text-sm text-white/75"
-                                >
-                                    <Check
-                                        class="size-4 shrink-0"
-                                        style="color: #34d399"
-                                    />
-                                    {{ item }}
-                                </li>
-                            </ul>
-                        </div>
-                        <div
-                            data-animate
-                            class="rounded-3xl p-8"
-                            :style="{
-                                ...glass,
-                                transitionDelay: '80ms',
-                                border: '1px solid rgba(251,191,36,0.35)',
-                            }"
-                        >
-                            <div
-                                class="mb-5 flex size-12 items-center justify-center rounded-2xl"
-                                style="
-                                    background: linear-gradient(
-                                        135deg,
-                                        #a855f7,
-                                        #ec4899
-                                    );
-                                    box-shadow: 0 6px 20px
-                                        rgba(168, 85, 247, 0.4);
-                                "
-                            >
-                                <Wand2 class="size-5 text-white" />
-                            </div>
-                            <h3
-                                class="flex items-center gap-2 text-xl font-bold text-white"
-                            >
-                                AI Draft
-                                <span
-                                    class="rounded-full px-2.5 py-0.5 text-xs font-bold text-white"
-                                    style="
-                                        background: linear-gradient(
-                                            135deg,
-                                            #fbbf24,
-                                            #f472b6
-                                        );
-                                    "
-                                    >populer</span
-                                >
-                            </h3>
-                            <p
-                                class="mt-2 text-sm leading-relaxed text-white/65"
-                            >
-                                Tempel lowongan, biarkan AI merangkai email yang
-                                nyambung sama CV kamu. Edit sepuasnya sebelum
-                                kirim.
-                            </p>
-                            <ul class="mt-5 space-y-2.5">
-                                <li
-                                    v-for="item in [
-                                        'Draft otomatis dari job posting',
-                                        'Berbasis CV asli kamu',
-                                        'Tetap bisa diedit manual',
-                                    ]"
-                                    :key="item"
-                                    class="flex items-center gap-2 text-sm text-white/75"
-                                >
-                                    <Check
-                                        class="size-4 shrink-0"
-                                        style="color: #34d399"
-                                    />
-                                    {{ item }}
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- CTA BANNER -->
-            <section class="px-4 py-16 sm:px-6 sm:py-24 lg:py-28">
-                <div class="mx-auto max-w-4xl">
-                    <div
-                        class="relative overflow-hidden rounded-[2rem] px-8 py-14 text-center sm:px-14 sm:py-20"
-                        :style="{
-                            ...glass,
-                            background:
-                                'linear-gradient(135deg, rgba(168,85,247,0.35), rgba(236,72,153,0.3))',
-                        }"
-                        data-animate
-                    >
-                        <div
-                            class="pointer-events-none absolute -top-16 -right-16 size-56 rounded-full"
-                            style="
-                                background: radial-gradient(
-                                    circle,
-                                    rgba(251, 191, 36, 0.35),
-                                    transparent 70%
-                                );
-                            "
-                        ></div>
-                        <h2
-                            class="text-3xl font-black tracking-tight text-white sm:text-5xl"
-                        >
-                            Siap bikin HR berhenti scroll?
-                        </h2>
-                        <p
-                            class="mx-auto mt-4 max-w-lg text-base text-white/75 sm:text-lg"
-                        >
-                            Gratis selamanya, tanpa kartu kredit. Kirim email
-                            lamaran pertamamu dalam beberapa menit.
-                        </p>
-                        <div
-                            class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4"
+                            class="mb-10 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4"
                         >
                             <Link
                                 :href="
@@ -950,95 +407,688 @@ onMounted(() => {
                                         ? dashboard()
                                         : register()
                                 "
-                                class="inline-flex w-full items-center justify-center gap-2 rounded-2xl px-8 py-4 text-base font-bold text-white transition-transform duration-200 hover:scale-105 sm:w-auto"
-                                style="
-                                    background: linear-gradient(
-                                        135deg,
-                                        #fbbf24,
-                                        #ec4899
-                                    );
-                                    box-shadow: 0 8px 30px
-                                        rgba(236, 72, 153, 0.5);
-                                "
+                                class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-white px-7 py-3.5 text-base font-semibold text-black transition-opacity hover:opacity-90 sm:w-auto"
                             >
-                                Mulai gratis sekarang
+                                Get started free
                                 <ArrowRight class="size-4" />
                             </Link>
-                            <Link
+                            <a
                                 href="/tutorial"
-                                class="inline-flex w-full items-center justify-center gap-2 rounded-2xl px-8 py-4 text-base font-semibold text-white transition-transform duration-200 hover:scale-105 sm:w-auto"
-                                :style="glass"
+                                class="inline-flex w-full items-center justify-center gap-2 rounded-md border border-white/15 px-7 py-3.5 text-base font-semibold text-white transition-colors hover:bg-white/5 sm:w-auto"
                             >
-                                Lihat tutorial dulu
-                            </Link>
+                                Watch the tutorial
+                            </a>
+                        </div>
+
+                        <p
+                            class="font-mono text-xs tracking-wide text-white/45 sm:text-sm"
+                        >
+                            3 min setup · Gmail-native · No credit card required
+                        </p>
+                    </div>
+                </section>
+
+                <!-- ============ TRUST STRIP ============ -->
+                <section
+                    class="border-y border-white/10"
+                    style="background: rgba(255, 255, 255, 0.02)"
+                >
+                    <div
+                        class="mx-auto max-w-6xl px-4 py-8 sm:px-6"
+                        data-animate
+                    >
+                        <p
+                            class="mb-6 text-center font-mono text-xs tracking-[0.2em] text-white/35 uppercase"
+                        >
+                            Renders pixel-perfect across
+                        </p>
+                        <div
+                            class="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-lg font-semibold tracking-tight text-white/50 sm:gap-x-14 sm:text-2xl"
+                        >
+                            <span>Gmail</span>
+                            <span>Outlook</span>
+                            <span>Apple&nbsp;Mail</span>
+                            <span>Superhuman</span>
+                            <span>Proton&nbsp;Mail</span>
+                            <span>Chrome</span>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
 
-            <!-- FOOTER -->
-            <footer class="px-4 pb-10 sm:px-6">
-                <div class="mx-auto max-w-6xl">
-                    <div
-                        class="flex flex-col items-center justify-between gap-6 rounded-3xl px-6 py-8 sm:flex-row sm:px-8"
-                        :style="glass"
-                    >
-                        <div class="flex items-center gap-2">
+                <!-- ============ HOW IT WORKS (TIMELINE) ============ -->
+                <section
+                    id="how-it-works"
+                    class="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-28"
+                >
+                    <div class="mb-14 max-w-2xl" data-animate>
+                        <p
+                            class="mb-3 font-mono text-xs tracking-[0.2em] text-white/40 uppercase"
+                        >
+                            // How it works
+                        </p>
+                        <h2
+                            class="mb-4 text-3xl font-bold tracking-tight text-white sm:text-5xl"
+                        >
+                            From CV to a sent email in four steps.
+                        </h2>
+                        <p class="text-base text-[#a1a1aa] sm:text-lg">
+                            No new inbox to manage and no sending server in the
+                            middle. ApplyMail prepares the message; you send it
+                            from the account recruiters already trust.
+                        </p>
+                    </div>
+
+                    <!-- Desktop horizontal timeline -->
+                    <div class="relative hidden lg:block" data-animate>
+                        <div
+                            class="absolute top-1/2 right-0 left-0 h-px bg-white/10"
+                        ></div>
+                        <div class="grid grid-cols-4 gap-6">
                             <div
-                                class="flex size-8 items-center justify-center rounded-xl"
+                                v-for="(step, i) in steps"
+                                :key="step.num"
+                                class="grid"
                                 style="
-                                    background: linear-gradient(
-                                        135deg,
-                                        #a855f7,
-                                        #ec4899
-                                    );
+                                    grid-template-rows: 1fr auto 1fr;
+                                    min-height: 22rem;
                                 "
                             >
-                                <Mail class="size-4 text-white" />
+                                <div
+                                    class="flex justify-center px-2"
+                                    :class="
+                                        i % 2 === 0
+                                            ? 'row-start-1 items-end pb-10'
+                                            : 'row-start-3 items-start pt-10'
+                                    "
+                                >
+                                    <div
+                                        class="rounded-lg border border-white/10 p-6"
+                                        style="
+                                            background: rgba(
+                                                255,
+                                                255,
+                                                255,
+                                                0.03
+                                            );
+                                            backdrop-filter: blur(12px);
+                                            -webkit-backdrop-filter: blur(12px);
+                                        "
+                                    >
+                                        <component
+                                            :is="step.icon"
+                                            class="mb-4 size-6 text-white"
+                                        />
+                                        <h3
+                                            class="mb-2 text-lg font-semibold text-white"
+                                        >
+                                            {{ step.title }}
+                                        </h3>
+                                        <p
+                                            class="text-sm leading-relaxed text-[#a1a1aa]"
+                                        >
+                                            {{ step.body }}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div
+                                    class="row-start-2 flex items-center justify-center"
+                                >
+                                    <div
+                                        class="flex size-14 items-center justify-center rounded-full border border-white/20 bg-[#0a0a0a] font-mono text-sm font-semibold text-white"
+                                    >
+                                        {{ step.num }}
+                                    </div>
+                                </div>
                             </div>
-                            <span class="text-base font-bold text-white"
-                                >ApplyMail</span
-                            >
                         </div>
-                        <nav
-                            class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-white/70"
+                    </div>
+
+                    <!-- Mobile vertical timeline -->
+                    <div class="relative lg:hidden" data-animate>
+                        <div
+                            class="absolute top-2 bottom-2 left-[27px] w-px bg-white/10"
+                        ></div>
+                        <div class="flex flex-col gap-8">
+                            <div
+                                v-for="step in steps"
+                                :key="step.num"
+                                class="relative flex gap-5"
+                            >
+                                <div
+                                    class="z-10 flex size-14 shrink-0 items-center justify-center rounded-full border border-white/20 bg-[#0a0a0a] font-mono text-sm font-semibold text-white"
+                                >
+                                    {{ step.num }}
+                                </div>
+                                <div class="pt-1.5">
+                                    <h3
+                                        class="mb-1.5 text-lg font-semibold text-white"
+                                    >
+                                        {{ step.title }}
+                                    </h3>
+                                    <p
+                                        class="text-sm leading-relaxed text-[#a1a1aa]"
+                                    >
+                                        {{ step.body }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============ FEATURES (BENTO) ============ -->
+                <section
+                    id="features"
+                    class="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-28"
+                >
+                    <div class="mb-14 max-w-2xl" data-animate>
+                        <p
+                            class="mb-3 font-mono text-xs tracking-[0.2em] text-white/40 uppercase"
                         >
-                            <Link href="/tutorial" class="hover:text-white"
-                                >Tutorial</Link
+                            // Features
+                        </p>
+                        <h2
+                            class="mb-4 text-3xl font-bold tracking-tight text-white sm:text-5xl"
+                        >
+                            Everything you need to write, preview and send.
+                        </h2>
+                        <p class="text-base text-[#a1a1aa] sm:text-lg">
+                            Built around one idea: the email a recruiter opens
+                            should look exactly the way you designed it, and it
+                            should arrive from you.
+                        </p>
+                    </div>
+
+                    <div
+                        class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+                        data-animate
+                    >
+                        <div
+                            v-for="feature in features"
+                            :key="feature.title"
+                            class="flex flex-col rounded-xl border border-white/10 p-7"
+                            :class="feature.span"
+                            style="
+                                background: rgba(255, 255, 255, 0.03);
+                                backdrop-filter: blur(12px);
+                                -webkit-backdrop-filter: blur(12px);
+                            "
+                        >
+                            <div
+                                class="mb-5 flex size-11 items-center justify-center rounded-lg border border-white/10 bg-white/5"
                             >
+                                <component
+                                    :is="feature.icon"
+                                    class="size-5 text-white"
+                                />
+                            </div>
+                            <h3
+                                class="mb-2 text-xl font-semibold tracking-tight text-white"
+                            >
+                                {{ feature.title }}
+                            </h3>
+                            <p
+                                class="text-sm leading-relaxed text-[#a1a1aa] sm:text-base"
+                            >
+                                {{ feature.body }}
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============ WHY GMAIL (SPLIT) ============ -->
+                <section
+                    id="why-gmail"
+                    class="border-y border-white/10"
+                    style="background: rgba(255, 255, 255, 0.02)"
+                >
+                    <div
+                        class="mx-auto grid max-w-6xl grid-cols-1 gap-12 px-4 py-16 sm:px-6 sm:py-28 lg:grid-cols-2 lg:items-center lg:gap-16"
+                    >
+                        <div data-animate>
+                            <p
+                                class="mb-3 font-mono text-xs tracking-[0.2em] text-white/40 uppercase"
+                            >
+                                // Why your own Gmail
+                            </p>
+                            <h2
+                                class="mb-5 text-3xl font-bold tracking-tight text-white sm:text-5xl"
+                            >
+                                Sent from you, not from a server.
+                            </h2>
+                            <p
+                                class="mb-4 text-base leading-relaxed text-[#a1a1aa] sm:text-lg"
+                            >
+                                Most tools blast your application from a shared
+                                marketing server, which is exactly why those
+                                messages get filtered into spam. ApplyMail does
+                                the opposite: you copy the finished email into
+                                your own Gmail and send it yourself.
+                            </p>
+                            <p
+                                class="text-base leading-relaxed text-[#a1a1aa] sm:text-lg"
+                            >
+                                That means you inherit your personal sending
+                                reputation, your real name and address appear in
+                                the header, and every reply lands directly in
+                                your inbox — no forwarding, no missed responses.
+                            </p>
+                        </div>
+
+                        <!-- Monochrome flow diagram -->
+                        <div class="flex flex-col gap-5" data-animate>
+                            <div
+                                class="rounded-xl border border-white/15 p-6"
+                                style="background: rgba(255, 255, 255, 0.04)"
+                            >
+                                <p
+                                    class="mb-4 flex items-center gap-2 font-mono text-xs tracking-wider text-white/70 uppercase"
+                                >
+                                    <Check class="size-4" /> The ApplyMail way
+                                </p>
+                                <div
+                                    class="flex items-center justify-between gap-2 text-sm font-semibold text-white sm:text-base"
+                                >
+                                    <span
+                                        class="rounded-md border border-white/15 px-3 py-2"
+                                        >Your Gmail</span
+                                    >
+                                    <ArrowRight
+                                        class="size-5 shrink-0 text-white/50"
+                                    />
+                                    <span
+                                        class="rounded-md border border-white/15 px-3 py-2"
+                                        >Recruiter’s inbox</span
+                                    >
+                                </div>
+                            </div>
+
+                            <div
+                                class="rounded-xl border border-white/10 p-6"
+                                style="background: rgba(255, 255, 255, 0.02)"
+                            >
+                                <p
+                                    class="mb-4 flex items-center gap-2 font-mono text-xs tracking-wider text-white/40 uppercase"
+                                >
+                                    <X class="size-4" /> The old way
+                                </p>
+                                <div
+                                    class="flex items-center justify-between gap-2 text-sm font-semibold text-white/35 line-through sm:text-base"
+                                >
+                                    <span
+                                        class="rounded-md border border-white/10 px-3 py-2"
+                                        >Marketing server</span
+                                    >
+                                    <ArrowRight
+                                        class="size-5 shrink-0 text-white/20"
+                                    />
+                                    <span
+                                        class="rounded-md border border-white/10 px-3 py-2"
+                                        >Spam folder</span
+                                    >
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============ STATS BAND ============ -->
+                <section style="background: rgba(255, 255, 255, 0.03)">
+                    <div
+                        class="mx-auto grid max-w-6xl grid-cols-2 gap-y-10 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-4"
+                        data-animate
+                    >
+                        <div
+                            v-for="stat in stats"
+                            :key="stat.label"
+                            class="text-center"
+                        >
+                            <p
+                                class="text-4xl font-bold tracking-tight text-white sm:text-6xl"
+                            >
+                                {{ stat.value }}
+                            </p>
+                            <p
+                                class="mt-2 text-xs tracking-wide text-[#71717a] sm:text-sm"
+                            >
+                                {{ stat.label }}
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============ TWO MODES (STAGGERED) ============ -->
+                <section
+                    id="modes"
+                    class="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-28"
+                >
+                    <div class="mb-14 max-w-2xl" data-animate>
+                        <p
+                            class="mb-3 font-mono text-xs tracking-[0.2em] text-white/40 uppercase"
+                        >
+                            // Two ways to write
+                        </p>
+                        <h2
+                            class="mb-4 text-3xl font-bold tracking-tight text-white sm:text-5xl"
+                        >
+                            Full control, or a head start.
+                        </h2>
+                        <p class="text-base text-[#a1a1aa] sm:text-lg">
+                            Write every word yourself when you know exactly what
+                            to say, or let AI assemble a grounded first draft
+                            you can shape in seconds. Same polished result
+                            either way.
+                        </p>
+                    </div>
+
+                    <div
+                        class="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-10"
+                        data-animate
+                    >
+                        <div
+                            class="rounded-2xl border border-white/10 p-8 sm:p-10 lg:mt-16"
+                            style="background: rgba(255, 255, 255, 0.02)"
+                        >
+                            <p
+                                class="mb-4 font-mono text-xs tracking-[0.2em] text-white/40 uppercase"
+                            >
+                                Manual
+                            </p>
+                            <h3
+                                class="mb-3 text-2xl font-bold tracking-tight text-white sm:text-3xl"
+                            >
+                                Write it yourself
+                            </h3>
+                            <p
+                                class="mb-6 text-base leading-relaxed text-[#a1a1aa]"
+                            >
+                                Start from a clean template and fill in each
+                                field on your own terms. You control every
+                                sentence, every emphasis and every detail —
+                                ideal when you already know precisely what you
+                                want to say to a specific team.
+                            </p>
+                            <ul class="space-y-3 text-sm text-white/80">
+                                <li class="flex items-center gap-2.5">
+                                    <Check class="size-4 shrink-0 text-white" />
+                                    Complete editorial control
+                                </li>
+                                <li class="flex items-center gap-2.5">
+                                    <Check class="size-4 shrink-0 text-white" />
+                                    Reuse and tweak past emails
+                                </li>
+                                <li class="flex items-center gap-2.5">
+                                    <Check class="size-4 shrink-0 text-white" />
+                                    No credits spent on drafting
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div
+                            class="relative rounded-2xl border border-white/25 p-8 sm:p-10"
+                            style="background: rgba(255, 255, 255, 0.05)"
+                        >
+                            <span
+                                class="absolute -top-3 left-8 rounded-full border border-white/20 bg-white px-3 py-1 font-mono text-[10px] font-semibold tracking-[0.15em] text-black uppercase"
+                            >
+                                Popular
+                            </span>
+                            <p
+                                class="mb-4 font-mono text-xs tracking-[0.2em] text-white/50 uppercase"
+                            >
+                                AI-assisted
+                            </p>
+                            <h3
+                                class="mb-3 text-2xl font-bold tracking-tight text-white sm:text-3xl"
+                            >
+                                Draft with AI
+                            </h3>
+                            <p
+                                class="mb-6 text-base leading-relaxed text-[#a1a1aa]"
+                            >
+                                Paste the job posting and ApplyMail assembles a
+                                tailored first draft from your CV in seconds —
+                                grounded in your real experience, never
+                                invented. Refine any line, then copy it into
+                                Gmail and send.
+                            </p>
+                            <ul class="space-y-3 text-sm text-white/80">
+                                <li class="flex items-center gap-2.5">
+                                    <Check class="size-4 shrink-0 text-white" />
+                                    Tailored to each job posting
+                                </li>
+                                <li class="flex items-center gap-2.5">
+                                    <Check class="size-4 shrink-0 text-white" />
+                                    Grounded in your actual CV
+                                </li>
+                                <li class="flex items-center gap-2.5">
+                                    <Check class="size-4 shrink-0 text-white" />
+                                    Fully editable before sending
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============ FAQ ============ -->
+                <section
+                    id="faq"
+                    class="border-t border-white/10"
+                    style="background: rgba(255, 255, 255, 0.02)"
+                >
+                    <div
+                        class="mx-auto grid max-w-6xl grid-cols-1 gap-12 px-4 py-16 sm:px-6 sm:py-28 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16"
+                    >
+                        <div data-animate>
+                            <p
+                                class="mb-3 font-mono text-xs tracking-[0.2em] text-white/40 uppercase"
+                            >
+                                // FAQ
+                            </p>
+                            <h2
+                                class="mb-4 text-3xl font-bold tracking-tight text-white sm:text-5xl"
+                            >
+                                Questions, answered.
+                            </h2>
+                            <p class="text-base text-[#a1a1aa] sm:text-lg">
+                                Everything about how ApplyMail builds your
+                                email, keeps it out of spam and protects your
+                                data.
+                            </p>
+                        </div>
+
+                        <div class="flex flex-col" data-animate>
+                            <div
+                                v-for="(item, i) in faqs"
+                                :key="item.q"
+                                class="border-b border-white/10"
+                            >
+                                <button
+                                    class="flex w-full items-center justify-between gap-4 py-5 text-left"
+                                    @click="toggleFaq(i)"
+                                >
+                                    <h3
+                                        class="text-base font-semibold text-white sm:text-lg"
+                                    >
+                                        {{ item.q }}
+                                    </h3>
+                                    <ChevronDown
+                                        class="size-5 shrink-0 text-white/50 transition-transform duration-300"
+                                        :class="
+                                            openFaq === i ? 'rotate-180' : ''
+                                        "
+                                    />
+                                </button>
+                                <div
+                                    v-show="openFaq === i"
+                                    class="pr-8 pb-5 text-sm leading-relaxed text-[#a1a1aa] sm:text-base"
+                                >
+                                    {{ item.a }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============ CTA BANNER ============ -->
+                <section
+                    class="px-4 py-20 sm:px-6 sm:py-32"
+                    style="background: #0a0a0a"
+                >
+                    <div
+                        class="mx-auto max-w-4xl rounded-2xl border border-white/15 px-6 py-14 text-center sm:px-12 sm:py-20"
+                        style="background: rgba(255, 255, 255, 0.03)"
+                        data-animate
+                    >
+                        <h2
+                            class="mx-auto mb-5 max-w-2xl text-3xl font-bold tracking-tight text-white sm:text-5xl"
+                        >
+                            Send an application they’ll actually open.
+                        </h2>
+                        <p
+                            class="mx-auto mb-9 max-w-xl text-base text-[#a1a1aa] sm:text-lg"
+                        >
+                            Build your first designed email in minutes, preview
+                            it exactly as Gmail renders it, and send it from
+                            your own address. Free to start — no credit card
+                            required.
+                        </p>
+                        <div
+                            class="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4"
+                        >
                             <Link
-                                v-if="$page.props.auth.user"
-                                :href="dashboard()"
-                                class="hover:text-white"
-                                >Dashboard</Link
+                                :href="
+                                    $page.props.auth.user
+                                        ? dashboard()
+                                        : register()
+                                "
+                                class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-white px-7 py-3.5 text-base font-semibold text-black transition-opacity hover:opacity-90 sm:w-auto"
                             >
-                            <template v-else>
-                                <Link :href="login()" class="hover:text-white"
-                                    >Log in</Link
+                                Get started free
+                                <ArrowRight class="size-4" />
+                            </Link>
+                            <a
+                                href="/tutorial"
+                                class="inline-flex w-full items-center justify-center rounded-md border border-white/15 px-7 py-3.5 text-base font-semibold text-white transition-colors hover:bg-white/5 sm:w-auto"
+                            >
+                                Watch the tutorial
+                            </a>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <!-- ============ FOOTER ============ -->
+            <footer
+                class="border-t border-white/10"
+                style="background: #0a0a0a"
+            >
+                <div class="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+                    <div
+                        class="grid grid-cols-2 gap-10 sm:grid-cols-4 lg:grid-cols-5"
+                    >
+                        <div class="col-span-2 lg:col-span-2">
+                            <a href="#top" class="flex items-center gap-2.5">
+                                <span
+                                    class="flex size-8 items-center justify-center rounded-md bg-white"
                                 >
-                                <Link
-                                    :href="register()"
-                                    class="hover:text-white"
-                                    >Get started</Link
+                                    <Mail class="size-4 text-black" />
+                                </span>
+                                <span
+                                    class="text-base font-semibold tracking-tight text-white"
+                                    >ApplyMail</span
                                 >
-                            </template>
-                        </nav>
-                        <p class="text-xs text-white/45">
-                            © 2026 ApplyMail. Dibuat untuk job seekers
-                            Indonesia.
+                            </a>
+                            <p
+                                class="mt-4 max-w-xs text-sm leading-relaxed text-[#71717a]"
+                            >
+                                Designed application emails from your CV,
+                                previewed exactly as Gmail renders them, sent
+                                from your own inbox.
+                            </p>
+                        </div>
+
+                        <div>
+                            <p
+                                class="mb-4 font-mono text-xs tracking-[0.15em] text-white/40 uppercase"
+                            >
+                                Product
+                            </p>
+                            <ul class="space-y-3 text-sm">
+                                <li
+                                    v-for="link in productLinks"
+                                    :key="link.label"
+                                >
+                                    <a
+                                        :href="link.href"
+                                        class="text-[#a1a1aa] transition-colors hover:text-white"
+                                        >{{ link.label }}</a
+                                    >
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <p
+                                class="mb-4 font-mono text-xs tracking-[0.15em] text-white/40 uppercase"
+                            >
+                                Resources
+                            </p>
+                            <ul class="space-y-3 text-sm">
+                                <li
+                                    v-for="link in resourceLinks"
+                                    :key="link.label"
+                                >
+                                    <a
+                                        :href="link.href"
+                                        class="text-[#a1a1aa] transition-colors hover:text-white"
+                                        >{{ link.label }}</a
+                                    >
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <p
+                                class="mb-4 font-mono text-xs tracking-[0.15em] text-white/40 uppercase"
+                            >
+                                Legal
+                            </p>
+                            <ul class="space-y-3 text-sm">
+                                <li
+                                    v-for="link in legalLinks"
+                                    :key="link.label"
+                                >
+                                    <a
+                                        :href="link.href"
+                                        class="text-[#a1a1aa] transition-colors hover:text-white"
+                                        >{{ link.label }}</a
+                                    >
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div
+                        class="mt-12 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 sm:flex-row"
+                    >
+                        <p class="text-xs text-[#71717a]">
+                            © 2026 ApplyMail. All rights reserved.
+                        </p>
+                        <p class="font-mono text-xs text-[#71717a]">
+                            Built for the primary inbox.
                         </p>
                     </div>
                 </div>
             </footer>
         </div>
-        <!-- /content wrapper -->
     </div>
 </template>
 
 <style scoped>
 [data-animate] {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(24px);
     transition:
         opacity 0.7s ease,
         transform 0.7s ease;
@@ -1047,19 +1097,5 @@ onMounted(() => {
 [data-animate].in-view {
     opacity: 1;
     transform: translateY(0);
-}
-
-@keyframes float {
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-14px);
-    }
-}
-
-.float-card {
-    animation: float 6s ease-in-out infinite;
 }
 </style>
