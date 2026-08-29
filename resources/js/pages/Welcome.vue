@@ -114,18 +114,20 @@ onMounted(() => {
 <template>
     <Head title="Email lamaran yang bikin HR berhenti scroll — ApplyMail" />
 
-    <div
-        class="relative min-h-screen overflow-x-hidden font-sans text-white"
-        style="
-            background: linear-gradient(
-                160deg,
-                #1e1b4b 0%,
-                #312e81 30%,
-                #6d28d9 60%,
-                #9d174d 100%
-            );
-        "
-    >
+    <div class="relative min-h-screen overflow-x-hidden font-sans text-white">
+        <!-- Gradient base layer (behind three.js canvas) -->
+        <div
+            class="fixed inset-0 -z-20"
+            style="
+                background: linear-gradient(
+                    160deg,
+                    #1e1b4b 0%,
+                    #312e81 30%,
+                    #6d28d9 60%,
+                    #9d174d 100%
+                );
+            "
+        ></div>
         <ThreeBackground />
 
         <!-- NAV -->
