@@ -15,7 +15,7 @@ import {
     UserPlus,
     X,
 } from '@lucide/vue';
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { ref } from 'vue';
 import { login, register } from '@/routes';
 
 const mobileMenuOpen = ref(false);
