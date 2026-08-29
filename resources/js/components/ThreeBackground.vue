@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref } from 'vue';
 import * as THREE from 'three';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 
 const canvasEl = ref<HTMLCanvasElement | null>(null);
 let renderer: THREE.WebGLRenderer | null = null;
@@ -9,7 +9,10 @@ let cleanup: (() => void) | null = null;
 
 onMounted(() => {
     const canvas = canvasEl.value;
-    if (!canvas) return;
+
+    if (!canvas) {
+        return;
+    }
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
@@ -60,11 +63,13 @@ onMounted(() => {
     // --- Particle field ---
     const particleCount = 700;
     const positions = new Float32Array(particleCount * 3);
+
     for (let i = 0; i < particleCount; i++) {
         positions[i * 3] = (Math.random() - 0.5) * 40;
         positions[i * 3 + 1] = (Math.random() - 0.5) * 30;
         positions[i * 3 + 2] = (Math.random() - 0.5) * 20;
     }
+
     const particleGeo = new THREE.BufferGeometry();
     particleGeo.setAttribute(
         'position',
@@ -92,7 +97,10 @@ onMounted(() => {
 
     // --- Resize ---
     const onResize = () => {
-        if (!renderer) return;
+        if (!renderer) {
+            return;
+        }
+
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
