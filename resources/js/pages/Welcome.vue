@@ -17,12 +17,17 @@ import {
     Wand2,
     X,
 } from '@lucide/vue';
-import { onMounted, ref } from 'vue';
+import gsap from 'gsap';
+import ScrollTrigger from 'gsap/ScrollTrigger';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import ThreeGlobe from '@/components/ThreeGlobe.vue';
 import { dashboard, login, register } from '@/routes';
 
+const rootEl = ref(null);
 const mobileMenuOpen = ref(false);
 const openFaq = ref(0);
+
+let gsapCtx = null;
 
 const toggleMobileMenu = () => {
     mobileMenuOpen.value = !mobileMenuOpen.value;
@@ -180,21 +185,216 @@ onMounted(() => {
     script.textContent = JSON.stringify(faqSchema);
     document.head.appendChild(script);
 
-    const observer = new IntersectionObserver(
-        (entries) => {
-            entries.forEach((entry) => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('in-view');
-                    observer.unobserve(entry.target);
-                }
-            });
-        },
-        { threshold: 0.15 },
-    );
+    gsap.registerPlugin(ScrollTrigger);
 
-    document
-        .querySelectorAll('[data-animate]')
-        .forEach((el) => observer.observe(el));
+    gsapCtx = gsap.context(() => {
+        // Hero — on-load stagger (not scroll-driven)
+        const heroTl = gsap.timeline({
+            defaults: { ease: 'power3.out' },
+        });
+
+        heroTl.from('.js-hero-item', {
+            opacity: 0,
+            y: 44,
+            duration: 0.9,
+            stagger: 0.12,
+        });
+
+        // Trust strip — fade up + logos drift in from the right
+        gsap.from('.js-trust', {
+            scrollTrigger: {
+                trigger: '.js-trust',
+                start: 'top 85%',
+                toggleActions: 'play none none reverse',
+            },
+            opacity: 0,
+            y: 20,
+            duration: 0.7,
+            ease: 'power2.out',
+        });
+
+        gsap.from('.js-trust-logo', {
+            scrollTrigger: {
+                trigger: '.js-trust',
+                start: 'top 80%',
+                toggleActions: 'play none none reverse',
+            },
+            opacity: 0,
+            x: 32,
+            duration: 0.6,
+            stagger: 0.08,
+            ease: 'power2.out',
+        });
+
+        // Section headings — each reveals as it scrolls into view
+        gsap.utils.toArray('.js-reveal').forEach((el) => {
+            gsap.from(el, {
+                scrollTrigger: {
+                    trigger: el,
+                    start: 'top 80%',
+                    toggleActions: 'play none none reverse',
+                },
+                opacity: 0,
+                y: 28,
+                duration: 0.7,
+                ease: 'power2.out',
+            });
+        });
+
+        // How it works — draw the horizontal connector as it enters (scrub)
+        gsap.from('.js-timeline-line', {
+            scrollTrigger: {
+                trigger: '.js-timeline-line',
+                start: 'top 85%',
+                end: 'top 45%',
+                scrub: true,
+            },
+            scaleX: 0,
+            transformOrigin: 'left center',
+            ease: 'none',
+        });
+
+        // How it works — draw the vertical connector (mobile, scrub)
+        gsap.from('.js-timeline-line-v', {
+            scrollTrigger: {
+                trigger: '.js-timeline-line-v',
+                start: 'top 85%',
+                end: 'bottom 55%',
+                scrub: true,
+            },
+            scaleY: 0,
+            transformOrigin: 'top center',
+            ease: 'none',
+        });
+
+        // How it works — numbered nodes pop in with a stagger
+        gsap.from('.js-timeline-node', {
+            scrollTrigger: {
+                trigger: '#how-it-works',
+                start: 'top 68%',
+                toggleActions: 'play none none reverse',
+            },
+            opacity: 0,
+            scale: 0.6,
+            duration: 0.6,
+            stagger: 0.15,
+            ease: 'back.out(1.7)',
+        });
+
+        // Features bento — grid cells stagger in with scale + rise
+        gsap.from('.js-feature-card', {
+            scrollTrigger: {
+                trigger: '#features',
+                start: 'top 70%',
+                toggleActions: 'play none none reverse',
+            },
+            opacity: 0,
+            y: 40,
+            scale: 0.95,
+            duration: 0.7,
+            stagger: { each: 0.1, from: 'start' },
+            ease: 'power3.out',
+        });
+
+        // Why Gmail — split slides in from opposite sides
+        gsap.from('.js-why-left', {
+            scrollTrigger: {
+                trigger: '#why-gmail',
+                start: 'top 72%',
+                toggleActions: 'play none none reverse',
+            },
+            opacity: 0,
+            x: -48,
+            duration: 0.9,
+            ease: 'power3.out',
+        });
+
+        gsap.from('.js-why-right', {
+            scrollTrigger: {
+                trigger: '#why-gmail',
+                start: 'top 72%',
+                toggleActions: 'play none none reverse',
+            },
+            opacity: 0,
+            x: 48,
+            duration: 0.9,
+            ease: 'power3.out',
+        });
+
+        // Stats band — scrubbed count-up feel, staggered
+        gsap.from('.js-stat', {
+            scrollTrigger: {
+                trigger: '.js-stats',
+                start: 'top 88%',
+                end: 'top 48%',
+                scrub: true,
+            },
+            opacity: 0,
+            y: 56,
+            stagger: 0.15,
+            ease: 'none',
+        });
+
+        // Two modes — offset panels rise with different timing, AI scales in
+        gsap.from('.js-mode-manual', {
+            scrollTrigger: {
+                trigger: '#modes',
+                start: 'top 72%',
+                toggleActions: 'play none none reverse',
+            },
+            opacity: 0,
+            y: 64,
+            duration: 0.85,
+            ease: 'power3.out',
+        });
+
+        gsap.from('.js-mode-ai', {
+            scrollTrigger: {
+                trigger: '#modes',
+                start: 'top 72%',
+                toggleActions: 'play none none reverse',
+            },
+            opacity: 0,
+            y: 64,
+            scale: 0.9,
+            duration: 0.95,
+            delay: 0.18,
+            ease: 'power3.out',
+        });
+
+        // FAQ — rows stagger-fade as they enter
+        gsap.from('.js-faq-row', {
+            scrollTrigger: {
+                trigger: '#faq',
+                start: 'top 80%',
+                toggleActions: 'play none none reverse',
+            },
+            opacity: 0,
+            y: 22,
+            duration: 0.6,
+            stagger: 0.08,
+            ease: 'power2.out',
+        });
+
+        // CTA — scale + opacity pop
+        gsap.from('.js-cta', {
+            scrollTrigger: {
+                trigger: '.js-cta',
+                start: 'top 85%',
+                toggleActions: 'play none none reverse',
+            },
+            opacity: 0,
+            scale: 0.9,
+            duration: 0.8,
+            ease: 'back.out(1.4)',
+        });
+    }, rootEl);
+});
+
+onBeforeUnmount(() => {
+    if (gsapCtx) {
+        gsapCtx.revert();
+    }
 });
 </script>
 
@@ -226,16 +426,11 @@ onMounted(() => {
     </Head>
 
     <div
+        ref="rootEl"
         class="relative min-h-screen overflow-x-hidden font-sans text-white antialiased"
+        style="background: #0a0a0a"
     >
-        <!-- Pure-black base layer (bottom of the stack) -->
-        <div class="fixed inset-0 z-0" style="background: #0a0a0a"></div>
-
-        <!-- Animated white wireframe globe (fixed, z-1, transparent canvas) -->
-        <ThreeGlobe />
-
-        <!-- All page content sits above the animated background -->
-        <div class="relative z-10">
+        <div>
             <!-- ============ NAV ============ -->
             <header class="fixed top-0 right-0 left-0 z-50">
                 <div
@@ -371,17 +566,38 @@ onMounted(() => {
             <main id="top">
                 <!-- ============ HERO ============ -->
                 <section
-                    class="relative flex min-h-screen flex-col items-center justify-center px-4 pt-32 pb-20 text-center sm:px-6"
+                    class="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 pt-32 pb-20 text-center sm:px-6"
                 >
-                    <div class="mx-auto max-w-4xl" data-animate>
+                    <!-- Wireframe globe, confined to the hero -->
+                    <div
+                        class="pointer-events-none absolute inset-0"
+                        aria-hidden="true"
+                    >
+                        <ThreeGlobe />
+                    </div>
+
+                    <!-- Vignette: fades the globe into black behind the copy -->
+                    <div
+                        class="pointer-events-none absolute inset-0"
+                        style="
+                            background: radial-gradient(
+                                ellipse at center,
+                                transparent 0%,
+                                transparent 40%,
+                                #0a0a0a 85%
+                            );
+                        "
+                    ></div>
+
+                    <div class="relative z-10 mx-auto max-w-4xl">
                         <p
-                            class="mb-6 font-mono text-xs tracking-[0.25em] text-white/40 uppercase sm:text-sm"
+                            class="js-hero-item mb-6 font-mono text-xs tracking-[0.25em] text-white/40 uppercase sm:text-sm"
                         >
                             // AI-powered application emails
                         </p>
 
                         <h1
-                            class="mb-6 text-4xl leading-[1.02] font-bold tracking-tight text-white sm:text-6xl md:text-7xl lg:text-8xl"
+                            class="js-hero-item mb-6 text-4xl leading-[1.02] font-bold tracking-tight text-white sm:text-6xl md:text-7xl lg:text-8xl"
                         >
                             Application emails
                             <br class="hidden sm:block" />
@@ -390,7 +606,7 @@ onMounted(() => {
                         </h1>
 
                         <p
-                            class="mx-auto mb-9 max-w-2xl text-base leading-relaxed text-[#a1a1aa] sm:text-xl"
+                            class="js-hero-item mx-auto mb-9 max-w-2xl text-base leading-relaxed text-[#a1a1aa] sm:text-xl"
                         >
                             Turn your CV and any job posting into a designed
                             HTML email, previewed exactly as Gmail renders it —
@@ -399,7 +615,7 @@ onMounted(() => {
                         </p>
 
                         <div
-                            class="mb-10 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4"
+                            class="js-hero-item mb-10 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4"
                         >
                             <Link
                                 :href="
@@ -421,7 +637,7 @@ onMounted(() => {
                         </div>
 
                         <p
-                            class="font-mono text-xs tracking-wide text-white/45 sm:text-sm"
+                            class="js-hero-item font-mono text-xs tracking-wide text-white/45 sm:text-sm"
                         >
                             3 min setup · Gmail-native · No credit card required
                         </p>
@@ -433,10 +649,7 @@ onMounted(() => {
                     class="border-y border-white/10"
                     style="background: rgba(255, 255, 255, 0.02)"
                 >
-                    <div
-                        class="mx-auto max-w-6xl px-4 py-8 sm:px-6"
-                        data-animate
-                    >
+                    <div class="js-trust mx-auto max-w-6xl px-4 py-8 sm:px-6">
                         <p
                             class="mb-6 text-center font-mono text-xs tracking-[0.2em] text-white/35 uppercase"
                         >
@@ -445,12 +658,12 @@ onMounted(() => {
                         <div
                             class="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-lg font-semibold tracking-tight text-white/50 sm:gap-x-14 sm:text-2xl"
                         >
-                            <span>Gmail</span>
-                            <span>Outlook</span>
-                            <span>Apple&nbsp;Mail</span>
-                            <span>Superhuman</span>
-                            <span>Proton&nbsp;Mail</span>
-                            <span>Chrome</span>
+                            <span class="js-trust-logo">Gmail</span>
+                            <span class="js-trust-logo">Outlook</span>
+                            <span class="js-trust-logo">Apple&nbsp;Mail</span>
+                            <span class="js-trust-logo">Superhuman</span>
+                            <span class="js-trust-logo">Proton&nbsp;Mail</span>
+                            <span class="js-trust-logo">Chrome</span>
                         </div>
                     </div>
                 </section>
@@ -460,7 +673,7 @@ onMounted(() => {
                     id="how-it-works"
                     class="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-28"
                 >
-                    <div class="mb-14 max-w-2xl" data-animate>
+                    <div class="js-reveal mb-14 max-w-2xl">
                         <p
                             class="mb-3 font-mono text-xs tracking-[0.2em] text-white/40 uppercase"
                         >
@@ -479,9 +692,9 @@ onMounted(() => {
                     </div>
 
                     <!-- Desktop horizontal timeline -->
-                    <div class="relative hidden lg:block" data-animate>
+                    <div class="relative hidden lg:block">
                         <div
-                            class="absolute top-1/2 right-0 left-0 h-px bg-white/10"
+                            class="js-timeline-line absolute top-1/2 right-0 left-0 h-px bg-white/10"
                         ></div>
                         <div class="grid grid-cols-4 gap-6">
                             <div
@@ -534,7 +747,7 @@ onMounted(() => {
                                     class="row-start-2 flex items-center justify-center"
                                 >
                                     <div
-                                        class="flex size-14 items-center justify-center rounded-full border border-white/20 bg-[#0a0a0a] font-mono text-sm font-semibold text-white"
+                                        class="js-timeline-node flex size-14 items-center justify-center rounded-full border border-white/20 bg-[#0a0a0a] font-mono text-sm font-semibold text-white"
                                     >
                                         {{ step.num }}
                                     </div>
@@ -544,9 +757,9 @@ onMounted(() => {
                     </div>
 
                     <!-- Mobile vertical timeline -->
-                    <div class="relative lg:hidden" data-animate>
+                    <div class="relative lg:hidden">
                         <div
-                            class="absolute top-2 bottom-2 left-[27px] w-px bg-white/10"
+                            class="js-timeline-line-v absolute top-2 bottom-2 left-[27px] w-px bg-white/10"
                         ></div>
                         <div class="flex flex-col gap-8">
                             <div
@@ -555,7 +768,7 @@ onMounted(() => {
                                 class="relative flex gap-5"
                             >
                                 <div
-                                    class="z-10 flex size-14 shrink-0 items-center justify-center rounded-full border border-white/20 bg-[#0a0a0a] font-mono text-sm font-semibold text-white"
+                                    class="js-timeline-node z-10 flex size-14 shrink-0 items-center justify-center rounded-full border border-white/20 bg-[#0a0a0a] font-mono text-sm font-semibold text-white"
                                 >
                                     {{ step.num }}
                                 </div>
@@ -581,7 +794,7 @@ onMounted(() => {
                     id="features"
                     class="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-28"
                 >
-                    <div class="mb-14 max-w-2xl" data-animate>
+                    <div class="js-reveal mb-14 max-w-2xl">
                         <p
                             class="mb-3 font-mono text-xs tracking-[0.2em] text-white/40 uppercase"
                         >
@@ -601,12 +814,11 @@ onMounted(() => {
 
                     <div
                         class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
-                        data-animate
                     >
                         <div
                             v-for="feature in features"
                             :key="feature.title"
-                            class="flex flex-col rounded-xl border border-white/10 p-7"
+                            class="js-feature-card flex flex-col rounded-xl border border-white/10 p-7"
                             :class="feature.span"
                             style="
                                 background: rgba(255, 255, 255, 0.03);
@@ -645,7 +857,7 @@ onMounted(() => {
                     <div
                         class="mx-auto grid max-w-6xl grid-cols-1 gap-12 px-4 py-16 sm:px-6 sm:py-28 lg:grid-cols-2 lg:items-center lg:gap-16"
                     >
-                        <div data-animate>
+                        <div class="js-why-left">
                             <p
                                 class="mb-3 font-mono text-xs tracking-[0.2em] text-white/40 uppercase"
                             >
@@ -676,7 +888,7 @@ onMounted(() => {
                         </div>
 
                         <!-- Monochrome flow diagram -->
-                        <div class="flex flex-col gap-5" data-animate>
+                        <div class="js-why-right flex flex-col gap-5">
                             <div
                                 class="rounded-xl border border-white/15 p-6"
                                 style="background: rgba(255, 255, 255, 0.04)"
@@ -735,13 +947,12 @@ onMounted(() => {
                 <!-- ============ STATS BAND ============ -->
                 <section style="background: rgba(255, 255, 255, 0.03)">
                     <div
-                        class="mx-auto grid max-w-6xl grid-cols-2 gap-y-10 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-4"
-                        data-animate
+                        class="js-stats mx-auto grid max-w-6xl grid-cols-2 gap-y-10 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-4"
                     >
                         <div
                             v-for="stat in stats"
                             :key="stat.label"
-                            class="text-center"
+                            class="js-stat text-center"
                         >
                             <p
                                 class="text-4xl font-bold tracking-tight text-white sm:text-6xl"
@@ -762,7 +973,7 @@ onMounted(() => {
                     id="modes"
                     class="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-28"
                 >
-                    <div class="mb-14 max-w-2xl" data-animate>
+                    <div class="js-reveal mb-14 max-w-2xl">
                         <p
                             class="mb-3 font-mono text-xs tracking-[0.2em] text-white/40 uppercase"
                         >
@@ -783,10 +994,9 @@ onMounted(() => {
 
                     <div
                         class="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-10"
-                        data-animate
                     >
                         <div
-                            class="rounded-2xl border border-white/10 p-8 sm:p-10 lg:mt-16"
+                            class="js-mode-manual rounded-2xl border border-white/10 p-8 sm:p-10 lg:mt-16"
                             style="background: rgba(255, 255, 255, 0.02)"
                         >
                             <p
@@ -825,7 +1035,7 @@ onMounted(() => {
                         </div>
 
                         <div
-                            class="relative rounded-2xl border border-white/25 p-8 sm:p-10"
+                            class="js-mode-ai relative rounded-2xl border border-white/25 p-8 sm:p-10"
                             style="background: rgba(255, 255, 255, 0.05)"
                         >
                             <span
@@ -879,7 +1089,7 @@ onMounted(() => {
                     <div
                         class="mx-auto grid max-w-6xl grid-cols-1 gap-12 px-4 py-16 sm:px-6 sm:py-28 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16"
                     >
-                        <div data-animate>
+                        <div class="js-reveal">
                             <p
                                 class="mb-3 font-mono text-xs tracking-[0.2em] text-white/40 uppercase"
                             >
@@ -897,11 +1107,11 @@ onMounted(() => {
                             </p>
                         </div>
 
-                        <div class="flex flex-col" data-animate>
+                        <div class="flex flex-col">
                             <div
                                 v-for="(item, i) in faqs"
                                 :key="item.q"
-                                class="border-b border-white/10"
+                                class="js-faq-row border-b border-white/10"
                             >
                                 <button
                                     class="flex w-full items-center justify-between gap-4 py-5 text-left"
@@ -936,9 +1146,8 @@ onMounted(() => {
                     style="background: #0a0a0a"
                 >
                     <div
-                        class="mx-auto max-w-4xl rounded-2xl border border-white/15 px-6 py-14 text-center sm:px-12 sm:py-20"
+                        class="js-cta mx-auto max-w-4xl rounded-2xl border border-white/15 px-6 py-14 text-center sm:px-12 sm:py-20"
                         style="background: rgba(255, 255, 255, 0.03)"
-                        data-animate
                     >
                         <h2
                             class="mx-auto mb-5 max-w-2xl text-3xl font-bold tracking-tight text-white sm:text-5xl"
@@ -1084,18 +1293,3 @@ onMounted(() => {
         </div>
     </div>
 </template>
-
-<style scoped>
-[data-animate] {
-    opacity: 0;
-    transform: translateY(24px);
-    transition:
-        opacity 0.7s ease,
-        transform 0.7s ease;
-}
-
-[data-animate].in-view {
-    opacity: 1;
-    transform: translateY(0);
-}
-</style>
