@@ -27,7 +27,7 @@ const rootEl = ref(null);
 const mobileMenuOpen = ref(false);
 const openFaq = ref(0);
 
-let gsapCtx = null;
+let gsapCtx: gsap.Context | null = null;
 
 const toggleMobileMenu = () => {
     mobileMenuOpen.value = !mobileMenuOpen.value;
@@ -227,7 +227,7 @@ onMounted(() => {
         });
 
         // Section headings — each reveals as it scrolls into view
-        gsap.utils.toArray('.js-reveal').forEach((el) => {
+        gsap.utils.toArray<Element>('.js-reveal').forEach((el) => {
             gsap.from(el, {
                 scrollTrigger: {
                     trigger: el,
