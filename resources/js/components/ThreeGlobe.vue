@@ -21,7 +21,7 @@ onMounted(() => {
         0.1,
         1000,
     );
-    camera.position.z = 320;
+    camera.position.z = 300;
 
     renderer = new THREE.WebGLRenderer({
         canvas,
@@ -34,7 +34,7 @@ onMounted(() => {
     const globe = new THREE.Group();
     scene.add(globe);
 
-    const RADIUS = 100;
+    const RADIUS = 130;
 
     // --- Wireframe sphere (lat/long grid) ---
     const wireGeo = new THREE.SphereGeometry(RADIUS, 36, 24);
@@ -42,7 +42,7 @@ onMounted(() => {
         color: 0xffffff,
         wireframe: true,
         transparent: true,
-        opacity: 0.08,
+        opacity: 0.16,
     });
     globe.add(new THREE.Mesh(wireGeo, wireMat));
 
@@ -69,9 +69,9 @@ onMounted(() => {
     nodeGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
     const nodeMat = new THREE.PointsMaterial({
         color: 0xffffff,
-        size: 2.2,
+        size: 3,
         transparent: true,
-        opacity: 0.85,
+        opacity: 1,
     });
     globe.add(new THREE.Points(nodeGeo, nodeMat));
 
@@ -102,7 +102,7 @@ onMounted(() => {
     const lineMat = new THREE.LineBasicMaterial({
         color: 0xffffff,
         transparent: true,
-        opacity: 0.16,
+        opacity: 0.3,
     });
     globe.add(new THREE.LineSegments(lineGeo, lineMat));
 
