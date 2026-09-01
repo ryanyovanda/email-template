@@ -40,7 +40,7 @@ const selectedPackage = ref<number | null>(
     props.packages.length > 0 ? props.packages[0].id : null,
 );
 
-const customCredits = ref<number | null>(null);
+const customCredits = ref<number | undefined>(undefined);
 const useCustom = ref(false);
 const processing = ref(false);
 
