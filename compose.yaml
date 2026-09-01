@@ -93,6 +93,15 @@ services:
       CREDIT_MONTHLY_GRANT: ${CREDIT_MONTHLY_GRANT:-300}
       CREDIT_PROMOTION_REWARD: ${CREDIT_PROMOTION_REWARD:-50}
 
+      # --- Xendit (credit top-up payments). Blank = checkout disabled. ---
+      XENDIT_SECRET_KEY: ${XENDIT_SECRET_KEY:-}
+      XENDIT_CALLBACK_TOKEN: ${XENDIT_CALLBACK_TOKEN:-}
+      XENDIT_BASE_URL: ${XENDIT_BASE_URL:-https://api.xendit.co}
+      XENDIT_CURRENCY: ${XENDIT_CURRENCY:-IDR}
+      XENDIT_MIN_AMOUNT: ${XENDIT_MIN_AMOUNT:-10000}
+      XENDIT_MAX_AMOUNT: ${XENDIT_MAX_AMOUNT:-5000000}
+      XENDIT_PRICE_PER_CREDIT: ${XENDIT_PRICE_PER_CREDIT:-150}
+
       # --- Uploads. Without all three, files fall back to the local volume. ---
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
