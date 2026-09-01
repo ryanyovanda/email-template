@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AdminUserSeeder::class,
             EmailTemplateSeeder::class,
+            CreditPackageSeeder::class,
         ]);
 
         if (! app()->isProduction()) {

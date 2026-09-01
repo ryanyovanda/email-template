@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AiUsageController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Admin\TemplateController as AdminTemplateController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\AiDraftController;
@@ -9,12 +10,17 @@ use App\Http\Controllers\ApplicantProfileController;
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\ApplicationExportController;
 use App\Http\Controllers\ApplicationRenderController;
+use App\Http\Controllers\CreditPurchaseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TemplateGalleryController;
 use App\Http\Controllers\UserTemplateController;
+use App\Http\Controllers\XenditWebhookController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
+
+// Xendit payment webhook — no auth or CSRF, authenticated by callback token.
+Route::post('webhooks/xendit', XenditWebhookController::class)->name('webhooks.xendit');
 Route::inertia('/tutorial', 'Tutorial')->name('tutorial');
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -22,6 +28,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('profile/setup', [ApplicantProfileController::class, 'edit'])->name('applicant-profile.edit');
     Route::post('profile/setup', [ApplicantProfileController::class, 'update'])->name('applicant-profile.update');
+
+    // Buying credits — available even before the profile is complete.
+    Route::get('credits', [CreditPurchaseController::class, 'index'])->name('credits.index');
+    Route::post('credits/checkout', [CreditPurchaseController::class, 'checkout'])->name('credits.checkout');
 
     Route::middleware('profile.complete')->group(function () {
         Route::get('templates', [TemplateGalleryController::class, 'index'])->name('templates.index');
@@ -65,6 +75,13 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::delete('templates/{template}/promote', [AdminTemplateController::class, 'demote'])->name('templates.demote');
 
     Route::get('ai-usage', [AiUsageController::class, 'index'])->name('ai-usage.index');
+
+    // Runtime pricing + credit packages.
+    Route::get('settings', [AdminSettingController::class, 'index'])->name('settings.index');
+    Route::put('settings/pricing', [AdminSettingController::class, 'updatePricing'])->name('settings.pricing');
+    Route::post('settings/packages', [AdminSettingController::class, 'storePackage'])->name('settings.packages.store');
+    Route::put('settings/packages/{package}', [AdminSettingController::class, 'updatePackage'])->name('settings.packages.update');
+    Route::delete('settings/packages/{package}', [AdminSettingController::class, 'destroyPackage'])->name('settings.packages.destroy');
 });
 
 require __DIR__.'/settings.php';

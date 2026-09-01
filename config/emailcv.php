@@ -109,4 +109,35 @@ return [
         'https://chromewebstore.google.com/detail/insert-and-send-html-with/bcflbfdlpegakpncdgmejelcolhmfkjh'
     ),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Xendit (credit top-up payments)
+    |--------------------------------------------------------------------------
+    |
+    | Users buy credits through Xendit's hosted Invoice checkout, which covers
+    | QRIS, virtual accounts, e-wallets and cards in one page. The secret key
+    | authenticates our API calls; the callback token authenticates the webhook
+    | Xendit sends us when an invoice is paid. Both come from the Xendit
+    | dashboard (use the test keys until you go live).
+    |
+    */
+
+    'xendit' => [
+        'secret_key' => env('XENDIT_SECRET_KEY', ''),
+        'callback_token' => env('XENDIT_CALLBACK_TOKEN', ''),
+        'base_url' => env('XENDIT_BASE_URL', 'https://api.xendit.co'),
+
+        // Currency and the min/max a user may spend on a custom top-up, in
+        // whole rupiah. Xendit's own invoice minimum is IDR 10,000.
+        'currency' => env('XENDIT_CURRENCY', 'IDR'),
+        'min_amount' => (int) env('XENDIT_MIN_AMOUNT', 10000),
+        'max_amount' => (int) env('XENDIT_MAX_AMOUNT', 5000000),
+
+        // How many rupiah one credit costs when a user tops up a custom amount.
+        // Package prices are set per-package instead; this only drives the
+        // free-form "custom amount" path.
+        'price_per_credit' => (int) env('XENDIT_PRICE_PER_CREDIT', 150),
+    ],
+
 ];
+

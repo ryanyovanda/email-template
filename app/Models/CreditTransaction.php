@@ -43,6 +43,8 @@ class CreditTransaction extends Model
 
     public const ADMIN_ADJUSTMENT = 'admin_adjustment';
 
+    public const PURCHASE = 'purchase';
+
     /**
      * Human wording for the ledger, so a user is never shown a raw slug.
      */
@@ -54,6 +56,7 @@ class CreditTransaction extends Model
             self::TEMPLATE_DESIGN => 'AI template design',
             self::TEMPLATE_PROMOTED => 'Template published to the library',
             self::ADMIN_ADJUSTMENT => 'Adjusted by an administrator',
+            self::PURCHASE => 'Credits purchased',
             default => ucfirst(str_replace('_', ' ', $this->reason)),
         };
     }

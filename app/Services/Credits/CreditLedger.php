@@ -4,6 +4,7 @@ namespace App\Services\Credits;
 
 use App\Models\CreditTransaction;
 use App\Models\User;
+use App\Services\Settings\Settings;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
@@ -14,6 +15,8 @@ use Illuminate\Support\Facades\DB;
  */
 class CreditLedger
 {
+    public function __construct(private Settings $settings) {}
+
     /**
      * Current balance, after making sure this month's allowance has landed.
      */
@@ -26,7 +29,7 @@ class CreditLedger
 
     public function priceOf(string $reason): int
     {
-        return (int) config("emailcv.credits.prices.{$reason}", 0);
+        return $this->settings->priceOf($reason);
     }
 
     public function canAfford(User $user, string $reason): bool
@@ -95,7 +98,7 @@ class CreditLedger
         return $this->grant(
             $author,
             CreditTransaction::TEMPLATE_PROMOTED,
-            (int) config('emailcv.credits.promotion_reward'),
+            $this->settings->promotionReward(),
             ['email_template_id' => $templateId],
         );
     }
@@ -122,7 +125,7 @@ class CreditLedger
             return null;
         }
 
-        $allowance = (int) config('emailcv.credits.monthly_grant');
+        $allowance = $this->settings->monthlyGrant();
         $topUp = $allowance - $this->rawBalance($user);
 
         if ($topUp <= 0) {

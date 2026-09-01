@@ -30,6 +30,11 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
+        // Xendit posts payment webhooks here with no session or CSRF token; it
+        // is authenticated instead by the x-callback-token header the handler
+        // checks. Every other POST still requires a valid CSRF token.
+        $middleware->validateCsrfTokens(except: ['webhooks/xendit']);
+
         $middleware->web(append: [
             HandleAppearance::class,
             EnsureUserIsNotBanned::class,

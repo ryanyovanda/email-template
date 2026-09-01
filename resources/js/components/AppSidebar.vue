@@ -2,10 +2,12 @@
 import { Link, usePage } from '@inertiajs/vue3';
 import {
     Activity,
+    CreditCard,
     Puzzle,
     FileText,
     LayoutGrid,
     LayoutTemplate,
+    Settings,
     Shield,
     UserCircle,
     Users,
@@ -28,10 +30,12 @@ import {
 import { dashboard } from '@/routes';
 import { dashboard as adminDashboard } from '@/routes/admin';
 import { index as aiUsageIndex } from '@/routes/admin/ai-usage';
+import { index as adminSettingsIndex } from '@/routes/admin/settings';
 import { index as adminTemplatesIndex } from '@/routes/admin/templates';
 import { index as adminUsersIndex } from '@/routes/admin/users';
 import { edit as applicantProfileEdit } from '@/routes/applicant-profile';
 import { index as applicationsIndex } from '@/routes/applications';
+import { index as creditsIndex } from '@/routes/credits';
 import { index as templatesIndex } from '@/routes/templates';
 import type { NavItem } from '@/types';
 
@@ -54,6 +58,11 @@ const mainNavItems: NavItem[] = [
         title: 'My applications',
         href: applicationsIndex(),
         icon: FileText,
+    },
+    {
+        title: 'Buy credits',
+        href: creditsIndex(),
+        icon: CreditCard,
     },
     {
         title: 'My profile & CV',
@@ -82,6 +91,11 @@ const adminNavItems: NavItem[] = [
         title: 'AI usage',
         href: aiUsageIndex(),
         icon: Activity,
+    },
+    {
+        title: 'Settings',
+        href: adminSettingsIndex(),
+        icon: Settings,
     },
 ];
 
