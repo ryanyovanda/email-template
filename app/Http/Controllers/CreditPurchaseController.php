@@ -7,11 +7,11 @@ use App\Models\CreditPurchase;
 use App\Services\Credits\CreditLedger;
 use App\Services\Payments\PaymentException;
 use App\Services\Payments\XenditClient;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 /**
  * Buying credits. The catalogue is admin-defined packages plus an optional
@@ -60,7 +60,7 @@ class CreditPurchaseController extends Controller
         ]);
     }
 
-    public function checkout(Request $request, XenditClient $xendit): RedirectResponse
+    public function checkout(Request $request, XenditClient $xendit): SymfonyResponse
     {
         $user = $request->user();
 
@@ -73,6 +73,7 @@ class CreditPurchaseController extends Controller
         // the custom amount. Prices are computed server-side; the client never
         // sends a price.
         if (! empty($validated['package_id'])) {
+            /** @var CreditPackage $package */
             $package = CreditPackage::query()->active()->findOrFail($validated['package_id']);
             $credits = $package->credits;
             $amount = $package->price;
