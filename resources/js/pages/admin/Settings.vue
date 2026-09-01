@@ -8,12 +8,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { dashboard as adminDashboard } from '@/routes/admin';
 import {
-    destroyPackage,
     index as adminSettingsIndex,
-    storePackage,
-    updatePackage,
-    updatePricing,
+    pricing as updatePricing,
 } from '@/routes/admin/settings';
+import {
+    destroy as destroyPackage,
+    store as storePackage,
+    update as updatePackage,
+} from '@/routes/admin/settings/packages';
 
 type Pkg = {
     id: number;
