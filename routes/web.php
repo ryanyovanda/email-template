@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AiUsageController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Admin\TemplateController as AdminTemplateController;
+use App\Http\Controllers\Admin\TransactionController as AdminTransactionController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\AiDraftController;
 use App\Http\Controllers\ApplicantProfileController;
@@ -32,6 +33,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Buying credits — available even before the profile is complete.
     Route::get('credits', [CreditPurchaseController::class, 'index'])->name('credits.index');
     Route::post('credits/checkout', [CreditPurchaseController::class, 'checkout'])->name('credits.checkout');
+    Route::get('credits/history', [CreditPurchaseController::class, 'history'])->name('credits.history');
+    Route::get('credits/{purchase}/invoice', [CreditPurchaseController::class, 'invoice'])->name('credits.invoice');
 
     Route::middleware('profile.complete')->group(function () {
         Route::get('templates', [TemplateGalleryController::class, 'index'])->name('templates.index');
@@ -75,6 +78,9 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::delete('templates/{template}/promote', [AdminTemplateController::class, 'demote'])->name('templates.demote');
 
     Route::get('ai-usage', [AiUsageController::class, 'index'])->name('ai-usage.index');
+
+    // Credit purchase transactions.
+    Route::get('transactions', [AdminTransactionController::class, 'index'])->name('transactions.index');
 
     // Runtime pricing + credit packages.
     Route::get('settings', [AdminSettingController::class, 'index'])->name('settings.index');

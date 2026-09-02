@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CreditPackage;
 use App\Models\CreditPurchase;
+use App\Models\CreditTransaction;
 use App\Services\Credits\CreditLedger;
 use App\Services\Payments\PaymentException;
 use App\Services\Payments\XenditClient;
@@ -132,5 +133,75 @@ class CreditPurchaseController extends Controller
 
         // Send the buyer to Xendit's hosted checkout.
         return Inertia::location($invoice['invoice_url']);
+    }
+
+    /**
+     * The signed-in user's full transaction history: the credit ledger (every
+     * grant and spend) plus their credit purchases with invoice links.
+     */
+    public function history(Request $request, CreditLedger $credits): Response
+    {
+        $user = $request->user();
+
+        $ledger = CreditTransaction::query()
+            ->where('user_id', $user->id)
+            ->latest('id')
+            ->paginate(20)
+            ->through(fn (CreditTransaction $t): array => [
+                'id' => $t->id,
+                'amount' => $t->amount,
+                'reason' => $t->reason,
+                'label' => $t->label(),
+                'description' => $t->description,
+                'at' => $t->created_at?->toDayDateTimeString(),
+            ]);
+
+        return Inertia::render('credits/History', [
+            'balance' => $credits->balance($user),
+            'currency' => (string) config('emailcv.xendit.currency', 'IDR'),
+            'ledger' => $ledger,
+            'purchases' => CreditPurchase::query()
+                ->where('user_id', $user->id)
+                ->latest('id')
+                ->limit(50)
+                ->get()
+                ->map(fn (CreditPurchase $p): array => [
+                    'id' => $p->id,
+                    'credits' => $p->credits,
+                    'amount' => $p->amount,
+                    'currency' => $p->currency,
+                    'status' => $p->status,
+                    'invoiceUrl' => $p->invoice_url,
+                    'at' => $p->created_at?->toDayDateTimeString(),
+                    'paidAt' => $p->paid_at?->toDayDateTimeString(),
+                ]),
+        ]);
+    }
+
+    /**
+     * A printable invoice for one of the user's own purchases. A user may only
+     * ever see their own; anything else is a 404 so ids can't be probed.
+     */
+    public function invoice(Request $request, CreditPurchase $purchase): Response
+    {
+        abort_unless($purchase->user_id === $request->user()->id, 404);
+
+        return Inertia::render('credits/Invoice', [
+            'invoice' => [
+                'id' => $purchase->id,
+                'number' => 'APM-'.str_pad((string) $purchase->id, 6, '0', STR_PAD_LEFT),
+                'credits' => $purchase->credits,
+                'amount' => $purchase->amount,
+                'currency' => $purchase->currency,
+                'status' => $purchase->status,
+                'reference' => $purchase->external_id,
+                'createdAt' => $purchase->created_at?->toDayDateTimeString(),
+                'paidAt' => $purchase->paid_at?->toDayDateTimeString(),
+            ],
+            'buyer' => [
+                'name' => $request->user()->name,
+                'email' => $request->user()->email,
+            ],
+        ]);
     }
 }

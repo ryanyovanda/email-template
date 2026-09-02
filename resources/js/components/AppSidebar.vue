@@ -7,6 +7,8 @@ import {
     FileText,
     LayoutGrid,
     LayoutTemplate,
+    Receipt,
+    ReceiptText,
     Settings,
     Shield,
     UserCircle,
@@ -32,10 +34,14 @@ import { dashboard as adminDashboard } from '@/routes/admin';
 import { index as aiUsageIndex } from '@/routes/admin/ai-usage';
 import { index as adminSettingsIndex } from '@/routes/admin/settings';
 import { index as adminTemplatesIndex } from '@/routes/admin/templates';
+import { index as adminTransactionsIndex } from '@/routes/admin/transactions';
 import { index as adminUsersIndex } from '@/routes/admin/users';
 import { edit as applicantProfileEdit } from '@/routes/applicant-profile';
 import { index as applicationsIndex } from '@/routes/applications';
-import { index as creditsIndex } from '@/routes/credits';
+import {
+    history as creditsHistory,
+    index as creditsIndex,
+} from '@/routes/credits';
 import { index as templatesIndex } from '@/routes/templates';
 import type { NavItem } from '@/types';
 
@@ -65,6 +71,11 @@ const mainNavItems: NavItem[] = [
         icon: CreditCard,
     },
     {
+        title: 'Transaction history',
+        href: creditsHistory(),
+        icon: ReceiptText,
+    },
+    {
         title: 'My profile & CV',
         href: applicantProfileEdit(),
         icon: UserCircle,
@@ -91,6 +102,11 @@ const adminNavItems: NavItem[] = [
         title: 'AI usage',
         href: aiUsageIndex(),
         icon: Activity,
+    },
+    {
+        title: 'Transactions',
+        href: adminTransactionsIndex(),
+        icon: Receipt,
     },
     {
         title: 'Settings',
