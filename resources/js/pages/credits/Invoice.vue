@@ -15,7 +15,7 @@ type Invoice = {
     paidAt: string | null;
 };
 
-const props = defineProps<{
+defineProps<{
     invoice: Invoice;
     buyer: { name: string; email: string };
 }>();
@@ -34,8 +34,6 @@ const statusLabel = (s: string): string =>
             expired: 'Expired',
         }) as Record<string, string>
     )[s] ?? s;
-
-const isPaid = props.invoice.status === 'paid';
 
 const print = () => window.print();
 </script>
@@ -90,7 +88,7 @@ const print = () => window.print();
                     <span
                         class="mt-2 inline-block rounded-full px-3 py-1 text-xs font-semibold"
                         :class="
-                            isPaid
+                            invoice.status === 'paid'
                                 ? 'bg-emerald-100 text-emerald-700'
                                 : 'bg-amber-100 text-amber-700'
                         "

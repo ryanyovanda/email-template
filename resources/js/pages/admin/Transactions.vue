@@ -19,7 +19,7 @@ type Row = {
     paidAt: string | null;
 };
 
-const props = defineProps<{
+defineProps<{
     transactions: {
         data: Row[];
         links: { url: string | null; label: string; active: boolean }[];
